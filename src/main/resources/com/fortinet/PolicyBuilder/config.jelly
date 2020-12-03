@@ -1,0 +1,12 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <f:entry title="Image Name" field="imageName">
+        <f:textbox />
+    </f:entry>
+    <f:entry title="Fail the build if found vulnerabilitiy" field="block">
+        <f:checkbox/>
+    </f:entry>
+    <f:entry title="Attach scan result to job" field="publish">
+        <f:checkbox/>
+    </f:entry>
+</j:jelly>

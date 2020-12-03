@@ -1,0 +1,44 @@
+### IntelliJ IDEA ###
+web-server/.idea
+web-server/*.iws
+.*/*.iml
+.idea
+web-server/*.ipr
+/fortiipam.iml
+.idea/.*
+*/.idea
+*/target
+/target
+fortiipam-lib/fortiipam-lib.iml
+fortiipam-api-service/fortiipam-api-service.iml
+/web-server/web-server.iml
+*.iml
+*/*.iml
+*.jar
+target
+**/target
+*/target/**
+*/target/*
+fortiipam-lib/target/
+fortiipam-api-service/target/
+/.idea/
+/.idea/workspace.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/fortiipam.iml
+/register-service/target/
+.idea/misc.xml
+.idea/vcs.xml
+
+### VS Code ###
+.classpath
+.factorypath
+.project
+.settings/
+.vscode/
+
+### Mac OS ###
+**/.DS_Store
+
+### For mvn hpi:run ###
+**/work/**
