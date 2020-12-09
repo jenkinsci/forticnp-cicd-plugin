@@ -9,6 +9,8 @@ import hudson.util.ListBoxModel;
 import hudson.util.ListBoxModel.Option;
 import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
+
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -89,8 +91,8 @@ public class UserConfiguration extends GlobalConfiguration {
             @QueryParameter("credentialToken") String credentialToken,
             @QueryParameter("manualControllerHostAddress") String manualControllerHostAddress) {
 
-        if (credentialToken.isEmpty()) {
-            return FormValidation.error("Please provide access token");
+        if (StringUtils.isEmpty(credentialToken)) {
+            return FormValidation.error("Please set access token");
         }
 
         try {
