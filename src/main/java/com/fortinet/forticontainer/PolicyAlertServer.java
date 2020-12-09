@@ -49,10 +49,9 @@ public class PolicyAlertServer {
             conn.setRequestProperty(ControllerUtil.HEADER_HTTP_METHOD, "POST");
             conn.getOutputStream().write(jsonObject.toString().getBytes("UTF-8"));
 
-            int responseCode =  conn.getResponseCode();
             final InputStream inputStream = conn.getInputStream();
             //System.out.println("policy alert request body: " + jsonObject.toString());
-            //System.out.println("policy alert response code: " + responseCode);
+            //System.out.println("policy alert response code: " + conn.getResponseCode());
 
             br = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()));
             StringBuilder sb = new StringBuilder();
