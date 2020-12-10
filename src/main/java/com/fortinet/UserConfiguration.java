@@ -1,22 +1,25 @@
 package com.fortinet;
 
 import com.fortinet.forticontainer.FortiContainerClient;
+import com.fortinet.forticontainer.JenkinsServer;
+
 import hudson.Extension;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.ListBoxModel.Option;
+import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
+
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
 
-/**
- * Example of Jenkins global configuration.
- */
 @Extension
 public class UserConfiguration extends GlobalConfiguration {
 
-    /** @return the singleton instance */
+    /** return the singleton instance */
     public static UserConfiguration get() {
         return GlobalConfiguration.all().get(UserConfiguration.class);
     }
@@ -26,7 +29,7 @@ public class UserConfiguration extends GlobalConfiguration {
 
     // fortics-web host
     private String webHostAddress;
-    private String credentialToken;
+    private Secret credentialToken;
     private String manualControllerHostAddress;
 
     public UserConfiguration() {
@@ -39,7 +42,7 @@ public class UserConfiguration extends GlobalConfiguration {
     }
 
     public String getCredentialToken() {
-        return credentialToken;
+        return Secret.toString(credentialToken);
     }
 
     public String getManualControllerHostAddress() {
@@ -54,7 +57,7 @@ public class UserConfiguration extends GlobalConfiguration {
 
     @DataBoundSetter
     public void setCredentialToken(String credentialToken) {
-        this.credentialToken = credentialToken;
+        this.credentialToken = Secret.fromString(credentialToken);
         save();
     }
 
@@ -76,28 +79,29 @@ public class UserConfiguration extends GlobalConfiguration {
     {
         return new ListBoxModel(new Option("FORTICWB GLOBAL", FORTICWB_HOST),
                                 new Option("FORTICWB EU", FORTICWB_EU_HOST),
-                                new Option("QA (will remove later)", "https://qa.staging.forticwp.com"),
+                                new Option("QA (will remove later)", "https://qa.staging.forticontainer.com"),
                                 new Option("QA1 (will remove later)", "https://qa1.staging.forticwp.com"));
+
+        // for beta testing, restore if needed
+        // new Option("QA (will remove later)", "https://qa.staging.forticontainer.com"),
+        // new Option("QA1 (will remove later)", "https://qa1.staging.forticwp.com"));
     }
 
+    @POST
     public FormValidation doTestConnection(
             @QueryParameter("webHostAddress") String webHostAddress,
             @QueryParameter("credentialToken") String credentialToken,
             @QueryParameter("manualControllerHostAddress") String manualControllerHostAddress) {
 
-        //System.out.println(webHostAddress + " " + credentialToken + " " + manualControllerHostAddress);
-
-        if (credentialToken.isEmpty()) {
-            return FormValidation.error("Please provide access token");
+        if (StringUtils.isEmpty(credentialToken)) {
+            return FormValidation.error("Please set access token");
         }
 
         try {
             boolean useControllerHost = !manualControllerHostAddress.isEmpty();
             String hostAddress = useControllerHost ? manualControllerHostAddress : webHostAddress;
 
-            //System.out.println("Testing connection with " + hostAddress + "," + credentialToken + ", useControllerHost: " + useControllerHost);
-
-            // would throw exception if fail to connect to the first available controller
+            // constructor throws exception if fail to connect to the first available controller
             FortiContainerClient containerClient = new FortiContainerClient(hostAddress, credentialToken, useControllerHost);
             return FormValidation.ok("Successfully connected to " + containerClient.getSessionInfo().getControllerHostUrl());
 
