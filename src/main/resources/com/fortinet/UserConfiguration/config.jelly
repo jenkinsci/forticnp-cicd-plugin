@@ -6,7 +6,7 @@
             <f:select/>
         </f:entry>
         <f:entry title="${%Access Token}">
-            <f:password checkMethod="post" field="credentialToken"/>
+            <f:password field="credentialToken"/>
         </f:entry>
         <f:entry title="Protector Host Address (Optional)">
             <f:textbox field="manualControllerHostAddress"/>

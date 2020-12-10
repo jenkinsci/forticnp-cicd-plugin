@@ -78,10 +78,12 @@ public class UserConfiguration extends GlobalConfiguration {
     public ListBoxModel doFillWebHostAddressItems()
     {
         return new ListBoxModel(new Option("FORTICWB GLOBAL", FORTICWB_HOST),
-                                new Option("FORTICWB EU", FORTICWB_EU_HOST));
+                                new Option("FORTICWB EU", FORTICWB_EU_HOST),
+                                new Option("QA (will remove later)", "https://qa.staging.forticontainer.com"),
+                                new Option("QA1 (will remove later)", "https://qa1.staging.forticwp.com"));
 
         // for beta testing, restore if needed
-        // new Option("QA (will remove later)", "https://qa.staging.forticwp.com"),
+        // new Option("QA (will remove later)", "https://qa.staging.forticontainer.com"),
         // new Option("QA1 (will remove later)", "https://qa1.staging.forticwp.com"));
     }
 
