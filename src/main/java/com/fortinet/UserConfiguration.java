@@ -92,6 +92,8 @@ public class UserConfiguration extends GlobalConfiguration {
             @QueryParameter("webHostAddress") String webHostAddress,
             @QueryParameter("credentialToken") String credentialToken,
             @QueryParameter("manualControllerHostAddress") String manualControllerHostAddress) {
+        // only allow admin to check connection
+        Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 
         if (StringUtils.isEmpty(credentialToken)) {
             return FormValidation.error("Please set access token");
