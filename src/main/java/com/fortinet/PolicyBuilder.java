@@ -5,7 +5,6 @@ import com.fortinet.forticontainer.FortiContainerClient;
 import com.fortinet.forticontainer.JenkinsServer;
 import com.fortinet.forticontainer.SessionInfo;
 import com.fortinet.forticontainer.common.ControllerUtil;
-import com.google.gson.Gson;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -20,7 +19,6 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.verb.POST;
 
 import javax.servlet.ServletException;
 import java.io.IOException;

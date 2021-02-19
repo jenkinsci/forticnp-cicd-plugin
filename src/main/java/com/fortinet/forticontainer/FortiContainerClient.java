@@ -31,12 +31,16 @@ public class FortiContainerClient {
         //System.out.println("currentBuildInfo created: " + currentBuildInfo.toString());
     }
 
-    public FortiContainerClient(String hostUrl, String credentialToken, boolean useControllerHost) throws Exception {
+    public FortiContainerClient(String hostUrl, String credentialToken, boolean isControllerHost) throws Exception {
         // check physical connection
-        String controllerHostUrl = useControllerHost ? hostUrl : ControllerUtil.requestControllerHostUrl(hostUrl, credentialToken);
+        String controllerHostUrl = isControllerHost ?
+                                   hostUrl :
+                                   ControllerUtil.requestControllerHostUrl(hostUrl, credentialToken);
 
-        if (useControllerHost && !ControllerUtil.checkControllerConnection(hostUrl, credentialToken)) {
-            throw new RuntimeException("cannot verify connection to to " + hostUrl);
+        //System.out.println("using controller host: " + controllerHostUrl);
+
+        if (ControllerUtil.checkControllerConnection(controllerHostUrl, credentialToken)) {
+            throw new RuntimeException("cannot verify connection to to " + controllerHostUrl);
         }
     
         // session info is aquired only if the physical connection is good

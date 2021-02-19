@@ -88,7 +88,7 @@ public class JenkinsServer {
             output = sb.toString();
             return output;
         } catch (IOException e) {
-            System.out.println("addJob failed, exception: " + e.getMessage());
+            //System.out.println("addJob failed, exception: " + e.getMessage());
             throw e;
         } finally {
             if (inputStream != null) {
@@ -102,11 +102,11 @@ public class JenkinsServer {
 
     public static Boolean uploadImage(String jobId, String imageName,SessionInfo sessionInfo, PrintStream ps) throws IOException {
         String fileName = URLEncoder.encode(imageName,"UTF-8");
-        System.out.println("the encode name is " + fileName);
+        //System.out.println("the encode name is " + fileName);
         Runtime runtime = Runtime.getRuntime();
         Boolean result = false;
         String saveDockerCmd = String.format("docker save %s -o /tmp/%s.tar", imageName, fileName+jobId);
-        System.out.println("the saveDockerCmd is " + saveDockerCmd);
+        //System.out.println("the saveDockerCmd is " + saveDockerCmd);
         ps.println("saving docker file to local: " + saveDockerCmd);
         Process process = runtime.exec(saveDockerCmd);
 
@@ -143,7 +143,7 @@ public class JenkinsServer {
             ps.println("failed to delete image file: " + imageFile.getPath());
             return false;
         } else {
-            System.out.println("successfully deleted image file: " + imageFile.getPath());
+            //System.out.println("successfully deleted image file: " + imageFile.getPath());
         }
         return result;
     }
@@ -155,7 +155,7 @@ public class JenkinsServer {
         jsonMap.put("status", statusCode);
 
         final String updateJobStatusUrl = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_JOB + "/" + jobId;
-        System.out.println("the update status url is " + updateJobStatusUrl);
+        //System.out.println("the update status url is " + updateJobStatusUrl);
         URL instanceUrl = new URL(updateJobStatusUrl);
         HttpURLConnection conn = (HttpURLConnection) instanceUrl.openConnection();
         try {
@@ -182,7 +182,7 @@ public class JenkinsServer {
     public static Integer checkJobStatus(SessionInfo sessionInfo, String jobId, PrintStream ps) throws IOException {
 
         final String checkJobStatusUrl = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_JOB + "/" + jobId;
-        System.out.println("job status API url is " + checkJobStatusUrl);
+        //System.out.println("job status API url is " + checkJobStatusUrl);
         URL instanceUrl = new URL(checkJobStatusUrl);
         HttpURLConnection conn = (HttpURLConnection) instanceUrl.openConnection();
 
@@ -194,7 +194,7 @@ public class JenkinsServer {
             conn.setRequestProperty(ControllerUtil.HEADER_CONTROLLER_TOKEN, sessionInfo.getControllerToken());
 
             int responseCode =  conn.getResponseCode();
-            System.out.println("job status API response code: " + responseCode);
+            //System.out.println("job status API response code: " + responseCode);
             final InputStream inputStream = conn.getInputStream();
 
             if(responseCode == 200) {
@@ -206,11 +206,11 @@ public class JenkinsServer {
                 }
                 output = sb.toString();
                 JSONObject jsonOutput = JSONObject.fromObject(output);
-                System.out.println("checkJobStatus response: " + jsonOutput);
+                //System.out.println("checkJobStatus response: " + jsonOutput);
 
                 Integer responseResult = jsonOutput.getInt("result");
                 Integer responseStatus = jsonOutput.getInt("status");
-                System.out.println("result: " + responseResult + ", status: " + responseStatus);
+                //System.out.println("result: " + responseResult + ", status: " + responseStatus);
 
                 final ProcessStatusEnum processStatus = ProcessStatusEnum.fromInteger(responseStatus);
                 ps.println("Image scan status: " + processStatus.name());
@@ -239,11 +239,11 @@ public class JenkinsServer {
 
     private static Boolean sendImageFileToServer(String imageFilePath, String imageName, SessionInfo sessionInfo, String jobId) throws Exception {
         String url = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_IMAGE + "/" + jobId;
-        System.out.println("sendImageFileToServer : the url send is : " + url);
+        //System.out.println("sendImageFileToServer : the url send is : " + url);
         String charset = "UTF-8";
         File binaryFile = new File(imageFilePath);
         if(binaryFile.exists()) {
-            System.out.println("the binary file is exist");
+            //System.out.println("the binary file is exist");
         }
         String boundary = "===" + Long.toHexString(System.currentTimeMillis()) + "==="; // Just generate some unique random value.
         String CRLF = "\r\n"; // Line separator required by multipart/form-data.
@@ -261,7 +261,7 @@ public class JenkinsServer {
         FileInputStream inputStream = null;
         try {
             String fileName = binaryFile.getName();
-            System.out.println("the file name is " + fileName);
+            //System.out.println("the file name is " + fileName);
             writer.append("--" + boundary).append(CRLF);
             writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"" + fileName + "\"").append(CRLF);
             writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(fileName)).append(CRLF);
@@ -274,7 +274,7 @@ public class JenkinsServer {
             int bytesRead = inputStream.read(buffer);
             while (bytesRead != -1) {
                 output.write(buffer, 0, bytesRead);
-                System.out.println("bytes sent: " + bytesRead);
+                //System.out.println("bytes sent: " + bytesRead);
                 bytesRead = inputStream.read(buffer);
             }
             output.flush();

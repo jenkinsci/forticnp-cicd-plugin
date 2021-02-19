@@ -1,12 +1,14 @@
 package com.fortinet;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import com.fortinet.forticontainer.FortiContainerClient;
-import com.fortinet.forticontainer.JenkinsServer;
 
 import hudson.Extension;
 import hudson.util.FormValidation;
-import hudson.util.ListBoxModel;
-import hudson.util.ListBoxModel.Option;
+import hudson.util.ComboBoxModel;
 import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
@@ -24,46 +26,48 @@ public class UserConfiguration extends GlobalConfiguration {
         return GlobalConfiguration.all().get(UserConfiguration.class);
     }
 
-    static private final String FORTICWP_HOST = "https://www.forticwp.com";
-    static private final String FORTICWP_EU_HOST = "https://eu.forticwp.com";
+    public static Boolean isWebHost(String host) {
+        return WEB_HOSTS.contains(host);
+    }
 
-    // fortics-web host
-    private String webHostAddress;
+    public Boolean isWebHost() {
+        return WEB_HOSTS.contains(hostAddress);
+    }
+
+    // pre-defined web hosts
+    static private final String FORTICWP_HOST = "http://www.forticwp.com";
+    static private final String FORTICWP_EU_HOST = "http://eu.forticwp.com";
+    static private final String FORTICWP_QA1_HOST = "http://qa1.staging.forticwp.com";
+
+    static private List<String> WEB_HOSTS =
+        new ArrayList<String>(Arrays.asList(FORTICWP_HOST, FORTICWP_EU_HOST, FORTICWP_QA1_HOST));
+
     private Secret credentialToken;
-    private String manualControllerHostAddress;
+    // host address, could be web / controller host
+    private String hostAddress;
 
     public UserConfiguration() {
         // When Jenkins is restarted, load any saved configuration from disk.
         load();
     }
 
-    public String getWebHostAddress() {
-        return webHostAddress;
+    public String getHostAddress() {
+        return hostAddress;
     }
 
     public String getCredentialToken() {
         return Secret.toString(credentialToken);
     }
 
-    public String getManualControllerHostAddress() {
-        return manualControllerHostAddress;
-    }
-
     @DataBoundSetter
-    public void setWebHostAddress(String webHostAddress) {
-        this.webHostAddress = webHostAddress;
+    public void setHostAddress(String hostAddress) {
+        this.hostAddress = hostAddress;
         save();
     }
 
     @DataBoundSetter
     public void setCredentialToken(String credentialToken) {
         this.credentialToken = Secret.fromString(credentialToken);
-        save();
-    }
-
-    @DataBoundSetter
-    public void setManualControllerHostAddress(String controllerHostAddress) {
-        this.manualControllerHostAddress = controllerHostAddress;
         save();
     }
 
@@ -74,25 +78,28 @@ public class UserConfiguration extends GlobalConfiguration {
         return FormValidation.ok();
     }
 
-    // dynamically fill web host list
-    public ListBoxModel doFillWebHostAddressItems()
-    {
-        return new ListBoxModel(new Option("FORTICWP GLOBAL", FORTICWP_HOST),
-                                new Option("FORTICWP EU", FORTICWP_EU_HOST),
-                                new Option("QA (will remove later)", "https://qa.staging.forticontainer.com"),
-                                new Option("QA1 (will remove later)", "https://qa1.staging.forticwp.com"));
+    public FormValidation doCheckHostAddress(@QueryParameter String value) {
+        if (StringUtils.isEmpty(value)) {
+            return FormValidation.warning("Please set host address.");
+        }
+        return FormValidation.ok();
+    }
 
-        // for beta testing, restore if needed
-        // new Option("QA (will remove later)", "https://qa.staging.forticontainer.com"),
-        // new Option("QA1 (will remove later)", "https://qa1.staging.forticwp.com"));
+    public ComboBoxModel doFillHostAddressItems() {
+        // global web host address is pre-defined, customer could fill local controller host
+        ComboBoxModel combobox = new ComboBoxModel();
+        for (String host : WEB_HOSTS) {
+            combobox.add(host);
+        }
+        return combobox;
     }
 
     @POST
     public FormValidation doTestConnection(
-            @QueryParameter("webHostAddress") String webHostAddress,
             @QueryParameter("credentialToken") String credentialToken,
-            @QueryParameter("manualControllerHostAddress") String manualControllerHostAddress) {
-        // only allow admin to check connection
+            @QueryParameter("hostAddress") String hostAddress) {
+
+        // security - only allow admin to check connection
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 
         if (StringUtils.isEmpty(credentialToken)) {
@@ -100,15 +107,14 @@ public class UserConfiguration extends GlobalConfiguration {
         }
 
         try {
-            boolean useControllerHost = !manualControllerHostAddress.isEmpty();
-            String hostAddress = useControllerHost ? manualControllerHostAddress : webHostAddress;
-
             // constructor throws exception if fail to connect to the first available controller
-            FortiContainerClient containerClient = new FortiContainerClient(hostAddress, credentialToken, useControllerHost);
-            return FormValidation.ok("Successfully connected to " + containerClient.getSessionInfo().getControllerHostUrl());
+            FortiContainerClient containerClient = new FortiContainerClient(hostAddress,
+                                                                            credentialToken,
+                                                                            !isWebHost(hostAddress));
 
+            return FormValidation.ok("Successfully connected to " + containerClient.getSessionInfo().getControllerHostUrl());
         } catch (Exception ex) {
-            return FormValidation.error("Error occured: " + ex.getMessage());
+            return FormValidation.error("Error occured when trying to connect: " + ex.getMessage());
         }
     }
 }

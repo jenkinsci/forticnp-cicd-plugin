@@ -129,10 +129,9 @@ public class ControllerUtil {
         final int tries = 3;
         for (int i = 0; i < tries; ++ i) {
             try {
-                String controllerHost = userConfiguration.getManualControllerHostAddress() == null
-                                        || userConfiguration.getManualControllerHostAddress().isEmpty() ?
-                                        ControllerUtil.requestControllerHostUrl(userConfiguration.getWebHostAddress(), userConfiguration.getCredentialToken()) :
-                                        userConfiguration.getManualControllerHostAddress();
+                String controllerHost = userConfiguration.isWebHost() ?
+                                        ControllerUtil.requestControllerHostUrl(userConfiguration.getHostAddress(), userConfiguration.getCredentialToken()) :
+                                        userConfiguration.getHostAddress();
     
                 ps.println("Using Protector host: " + controllerHost);
                 return controllerHost;
@@ -150,7 +149,8 @@ public class ControllerUtil {
             throw new RuntimeException("get empty protector host address");
         } else {
             final String heartBeatUrl = host + URI_MONITOR_HEALTH;
-
+            //System.out.println("heart beat url: " + heartBeatUrl);
+    
             URL url = new URL(heartBeatUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
@@ -172,7 +172,7 @@ public class ControllerUtil {
         final String accessToken = getAccessToken(webHostUrl, credentialToken);
         //System.out.println("get access token: " + accessToken);
 
-        if (!accessToken.isEmpty()) {    
+        if (!accessToken.isEmpty()) {
             // request controller host
             final String controllerHostApiUrl = webHostUrl + URI_CONTROLLER_HOST;
     

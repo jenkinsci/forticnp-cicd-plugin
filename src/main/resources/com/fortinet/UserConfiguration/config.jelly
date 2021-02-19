@@ -2,16 +2,13 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
     <f:section title="${%FortiCWP CICD Plugin Configuration}">
-        <f:entry title="${%Web Host Address}" field="webHostAddress">
-            <f:select/>
+        <f:entry title="Host Address" field="hostAddress">
+            <f:combobox />
         </f:entry>
         <f:entry title="${%Access Token}">
             <f:password field="credentialToken"/>
         </f:entry>
-        <f:entry title="Protector Host Address (Optional)">
-            <f:textbox field="manualControllerHostAddress"/>
-        </f:entry>
         <f:validateButton title="Verify Settings" progress="Testing Protector Connection ..."
-         method="testConnection" with="webHostAddress,credentialToken,manualControllerHostAddress" />
+         method="testConnection" with="hostAddress,credentialToken" />
     </f:section>
 </j:jelly>
