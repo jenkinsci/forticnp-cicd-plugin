@@ -67,7 +67,7 @@ public class ControllerUtil {
                     sb.append(output);
                 }
                 output = sb.toString();
-                //System.out.println(output); // debug
+                //System.out.println(output);
 
                 JSONObject tokenApiResponse = JSONObject.fromObject(output);
                 String token = tokenApiResponse.getString("access_token");

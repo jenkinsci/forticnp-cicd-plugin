@@ -29,7 +29,6 @@ public class PolicyBuilder extends Builder implements SimpleBuildStep {
 
     private String imageName;
     private Boolean block = true;
-    private Boolean publish = true;
 
     @DataBoundConstructor
     public PolicyBuilder(String imageName) {
@@ -45,25 +44,12 @@ public class PolicyBuilder extends Builder implements SimpleBuildStep {
         }
     }
 
-    @DataBoundSetter
-    public void setPublish(Boolean publish) {
-        if (publish == null) {
-            this.publish = true;
-        } else {
-            this.publish = publish;
-        }
-    }
-
     public String getImageName() {
         return imageName;
     }
 
     public Boolean getBlock() {
         return block;
-    }
-
-    public Boolean getPublish() {
-        return publish;
     }
 
     @Override
@@ -100,7 +86,7 @@ public class PolicyBuilder extends Builder implements SimpleBuildStep {
             return;
         }
 
-        //System.out.println("imageName: " + imageName + ", block: " + block + ", publish: " + publish);
+        //System.out.println("imageName: " + imageName + ", block: " + block);
 
         try {
             CurrentBuildInfo currentBuildInfo = new FortiContainerClient(jobName, jobUrl, buildNumber, imageName).imageScan(ps);
@@ -129,11 +115,9 @@ public class PolicyBuilder extends Builder implements SimpleBuildStep {
             run.addAction(vulnerabilityAction);
 
             // do publish before fail or success the job based on the scan result
-            if (publish) {
-                ps.println("Publishing scan result");
-                vulnerabilityAction.getImageVulnerabilityReport(ps);
-                vulnerabilityAction.getAlertInfo(ps);
-            }
+            ps.println("Generating scan result");
+            vulnerabilityAction.getImageVulnerabilityReport(ps);
+            vulnerabilityAction.getAlertInfo(ps);
 
             if (block && currentBuildInfo.getBuildResult() == 50) {
                 run.setResult(Result.FAILURE);

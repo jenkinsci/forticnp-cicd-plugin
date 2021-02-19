@@ -39,8 +39,8 @@ public class FortiContainerClient {
 
         //System.out.println("using controller host: " + controllerHostUrl);
 
-        if (ControllerUtil.checkControllerConnection(controllerHostUrl, credentialToken)) {
-            throw new RuntimeException("cannot verify connection to to " + controllerHostUrl);
+        if (!ControllerUtil.checkControllerConnection(controllerHostUrl, credentialToken)) {
+            throw new RuntimeException("cannot verify connection to " + controllerHostUrl);
         }
     
         // session info is aquired only if the physical connection is good

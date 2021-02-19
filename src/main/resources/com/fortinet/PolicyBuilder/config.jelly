@@ -3,10 +3,7 @@
     <f:entry title="Image Name" field="imageName">
         <f:textbox />
     </f:entry>
-    <f:entry title="Fail the build if found vulnerabilitiy" field="block">
-        <f:checkbox/>
-    </f:entry>
-    <f:entry title="Attach scan result to job" field="publish">
+    <f:entry title="Fail the build if not compliant to policy" field="block">
         <f:checkbox/>
     </f:entry>
 </j:jelly>

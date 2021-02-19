@@ -26,21 +26,36 @@ public class UserConfiguration extends GlobalConfiguration {
         return GlobalConfiguration.all().get(UserConfiguration.class);
     }
 
+    // pre-defined web hosts
+    static private final String FORTICWP_HOST = "www.forticwp.com";
+    static private final String FORTICWP_EU_HOST = "eu.forticwp.com";
+    static private final String FORTICWP_QA1_HOST = "qa1.staging.forticwp.com";
+    static private final String HTTP_PROTOCOL = "http://";
+    static private final String HTTPS_PROTOCOL = "https://";
+
+    static private List<String> WEB_HOSTS =
+        new ArrayList<String>(Arrays.asList(HTTP_PROTOCOL + FORTICWP_HOST,
+                                            HTTP_PROTOCOL + FORTICWP_EU_HOST,
+                                            HTTP_PROTOCOL + FORTICWP_QA1_HOST));
+
     public static Boolean isWebHost(String host) {
-        return WEB_HOSTS.contains(host);
+        // remove protocol from host
+        String rawHost = host.replace(HTTPS_PROTOCOL, "");
+        rawHost = rawHost.replace(HTTP_PROTOCOL, "");
+
+        for (String staticHost : WEB_HOSTS) {
+            if (staticHost.contains(rawHost)) {
+                //System.out.println(rawHost + " iswebhost = true");
+                return true;
+            }
+        }
+        //System.out.println(rawHost + " iswebhost = false");
+        return false;
     }
 
     public Boolean isWebHost() {
-        return WEB_HOSTS.contains(hostAddress);
+        return isWebHost(hostAddress);
     }
-
-    // pre-defined web hosts
-    static private final String FORTICWP_HOST = "http://www.forticwp.com";
-    static private final String FORTICWP_EU_HOST = "http://eu.forticwp.com";
-    static private final String FORTICWP_QA1_HOST = "http://qa1.staging.forticwp.com";
-
-    static private List<String> WEB_HOSTS =
-        new ArrayList<String>(Arrays.asList(FORTICWP_HOST, FORTICWP_EU_HOST, FORTICWP_QA1_HOST));
 
     private Secret credentialToken;
     // host address, could be web / controller host
