@@ -19,6 +19,15 @@ import org.kohsuke.stapler.verb.POST;
 @Extension
 public class UserConfiguration extends GlobalConfiguration {
 
+    public static class OptinalTextBlock {
+        private String text;
+
+        @org.kohsuke.stapler.DataBoundConstructor
+        public OptinalTextBlock(String text) {
+            this.text = text;
+        }
+    }
+
     /** return the singleton instance */
     public static UserConfiguration get() {
         return GlobalConfiguration.all().get(UserConfiguration.class);
@@ -31,6 +40,8 @@ public class UserConfiguration extends GlobalConfiguration {
     // fortics-web host
     private String webHostAddress;
     private Secret credentialToken;
+    private OptinalTextBlock optionalTextBlock;
+    // keep this to be compatible to the existing logic
     private String manualControllerHostAddress;
 
     public UserConfiguration() {
@@ -47,8 +58,38 @@ public class UserConfiguration extends GlobalConfiguration {
     }
 
     public String getManualControllerHostAddress() {
+        return getText();
+    }
+
+    public String getText() {
+        manualControllerHostAddress = (optionalTextBlock == null ? null : optionalTextBlock.text);
         return manualControllerHostAddress;
     }
+
+    // public String getText() {
+    //     System.out.println("!!!getText(): " + (optionalTextBlock == null ? "null" : optionalTextBlock.toString()) + ", text: " + optionalTextBlock.text);
+    //     System.out.println("it: " + this.getClass());
+    //     optionalText = optionalTextBlock == null ? null : optionalTextBlock.manualControllerHostAddress;
+    //     return optionalText;
+    // }
+
+    @DataBoundSetter
+    public void setEnableManualHost(OptinalTextBlock optionalTextBlock) {
+        System.out.println("!!!setEnableManualHost(): " + optionalTextBlock.toString() + ", text:" + optionalTextBlock.text);
+        System.out.println("it: " + this.getClass());
+        this.manualControllerHostAddress = (optionalTextBlock != null) ? optionalTextBlock.text : null;
+        this.optionalTextBlock = optionalTextBlock;
+        save();
+    }
+
+    // @DataBoundSetter
+    // public void setOptionalText(OptinalTextBlock enableText) {
+    //     System.out.println("!!!setOptionalText(): " + enableText.toString());
+    //     this.optionalText = (enableText != null) ? enableText.text : null;
+    //     this.optionalTextBlock = enableText;
+    //     save();
+    // }
+
 
     @DataBoundSetter
     public void setWebHostAddress(String webHostAddress) {
@@ -62,11 +103,11 @@ public class UserConfiguration extends GlobalConfiguration {
         save();
     }
 
-    @DataBoundSetter
-    public void setManualControllerHostAddress(String controllerHostAddress) {
-        this.manualControllerHostAddress = controllerHostAddress;
-        save();
-    }
+    // @DataBoundSetter
+    // public void setManualControllerHostAddress(String controllerHostAddress) {
+    //     this.manualControllerHostAddress = controllerHostAddress;
+    //     save();
+    // }
 
     public FormValidation doCheckCredentialToken(@QueryParameter String value) {
         if (StringUtils.isEmpty(value)) {
