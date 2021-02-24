@@ -24,8 +24,9 @@ public class UserConfiguration extends GlobalConfiguration {
         return GlobalConfiguration.all().get(UserConfiguration.class);
     }
 
-    static private final String FORTICWP_HOST = "https://www.forticwp.com";
-    static private final String FORTICWP_EU_HOST = "https://eu.forticwp.com";
+    static private final String FORTICWP_HOST = "www.forticwp.com";
+    static private final String FORTICWP_EU_HOST = "eu.forticwp.com";
+    static private final String DEFAULT_PROTOCOL = "http://";
 
     // fortics-web host
     private String webHostAddress;
@@ -77,14 +78,9 @@ public class UserConfiguration extends GlobalConfiguration {
     // dynamically fill web host list
     public ListBoxModel doFillWebHostAddressItems()
     {
-        return new ListBoxModel(new Option("FORTICWP GLOBAL", FORTICWP_HOST),
-                                new Option("FORTICWP EU", FORTICWP_EU_HOST),
-                                new Option("QA (will remove later)", "https://qa.staging.forticontainer.com"),
-                                new Option("QA1 (will remove later)", "https://qa1.staging.forticwp.com"));
-
-        // for beta testing, restore if needed
-        // new Option("QA (will remove later)", "https://qa.staging.forticontainer.com"),
-        // new Option("QA1 (will remove later)", "https://qa1.staging.forticwp.com"));
+        return new ListBoxModel(new Option("FORTICWP GLOBAL", DEFAULT_PROTOCOL + FORTICWP_HOST),
+                                new Option("FORTICWP EU", DEFAULT_PROTOCOL + FORTICWP_EU_HOST),
+                                new Option("QA1 (beta release)", DEFAULT_PROTOCOL + "qa1.staging.forticwp.com"));
     }
 
     @POST
