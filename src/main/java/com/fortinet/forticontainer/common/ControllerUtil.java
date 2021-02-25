@@ -129,10 +129,10 @@ public class ControllerUtil {
         final int tries = 3;
         for (int i = 0; i < tries; ++ i) {
             try {
-                String controllerHost = userConfiguration.getManualControllerHostAddress() == null
-                                        || userConfiguration.getManualControllerHostAddress().isEmpty() ?
+                String controllerHost = userConfiguration.getManualHostAddressByCheck() == null
+                                        || userConfiguration.getManualHostAddressByCheck().isEmpty() ?
                                         ControllerUtil.requestControllerHostUrl(userConfiguration.getWebHostAddress(), userConfiguration.getCredentialToken()) :
-                                        userConfiguration.getManualControllerHostAddress();
+                                        userConfiguration.getManualHostAddressByCheck();
     
                 ps.println("Using Protector host: " + controllerHost);
                 return controllerHost;

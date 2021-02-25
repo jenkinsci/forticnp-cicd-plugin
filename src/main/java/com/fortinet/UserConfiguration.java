@@ -19,15 +19,6 @@ import org.kohsuke.stapler.verb.POST;
 @Extension
 public class UserConfiguration extends GlobalConfiguration {
 
-    public static class OptinalTextBlock {
-        private String text;
-
-        @org.kohsuke.stapler.DataBoundConstructor
-        public OptinalTextBlock(String text) {
-            this.text = text;
-        }
-    }
-
     /** return the singleton instance */
     public static UserConfiguration get() {
         return GlobalConfiguration.all().get(UserConfiguration.class);
@@ -37,12 +28,10 @@ public class UserConfiguration extends GlobalConfiguration {
     static private final String FORTICWP_EU_HOST = "eu.forticwp.com";
     static private final String DEFAULT_PROTOCOL = "http://";
 
-    // fortics-web host
     private String webHostAddress;
     private Secret credentialToken;
-    private OptinalTextBlock optionalTextBlock;
-    // keep this to be compatible to the existing logic
-    private String manualControllerHostAddress;
+    private String manualHostAddress;
+    private boolean enableManualHostCheck;
 
     public UserConfiguration() {
         // When Jenkins is restarted, load any saved configuration from disk.
@@ -57,39 +46,30 @@ public class UserConfiguration extends GlobalConfiguration {
         return Secret.toString(credentialToken);
     }
 
-    public String getManualControllerHostAddress() {
-        return getText();
+    // return address by check box status
+    public String getManualHostAddressByCheck() {
+        return enableManualHostCheck ? manualHostAddress : "";
     }
 
-    public String getText() {
-        manualControllerHostAddress = (optionalTextBlock == null ? null : optionalTextBlock.text);
-        return manualControllerHostAddress;
+    public String getManualHostAddress() {
+        return getManualHostAddressByCheck();
     }
-
-    // public String getText() {
-    //     System.out.println("!!!getText(): " + (optionalTextBlock == null ? "null" : optionalTextBlock.toString()) + ", text: " + optionalTextBlock.text);
-    //     System.out.println("it: " + this.getClass());
-    //     optionalText = optionalTextBlock == null ? null : optionalTextBlock.manualControllerHostAddress;
-    //     return optionalText;
-    // }
+    
+    public boolean getEnableManualHostCheck() {
+        return enableManualHostCheck;
+    }
 
     @DataBoundSetter
-    public void setEnableManualHost(OptinalTextBlock optionalTextBlock) {
-        System.out.println("!!!setEnableManualHost(): " + optionalTextBlock.toString() + ", text:" + optionalTextBlock.text);
-        System.out.println("it: " + this.getClass());
-        this.manualControllerHostAddress = (optionalTextBlock != null) ? optionalTextBlock.text : null;
-        this.optionalTextBlock = optionalTextBlock;
+    public void setEnableManualHostCheck(boolean check) {
+        this.enableManualHostCheck = check;
         save();
     }
 
-    // @DataBoundSetter
-    // public void setOptionalText(OptinalTextBlock enableText) {
-    //     System.out.println("!!!setOptionalText(): " + enableText.toString());
-    //     this.optionalText = (enableText != null) ? enableText.text : null;
-    //     this.optionalTextBlock = enableText;
-    //     save();
-    // }
-
+    @DataBoundSetter
+    public void setManualHostAddress(String hostAddress) {
+        this.manualHostAddress = hostAddress;
+        save();
+    }
 
     @DataBoundSetter
     public void setWebHostAddress(String webHostAddress) {
@@ -103,12 +83,6 @@ public class UserConfiguration extends GlobalConfiguration {
         save();
     }
 
-    // @DataBoundSetter
-    // public void setManualControllerHostAddress(String controllerHostAddress) {
-    //     this.manualControllerHostAddress = controllerHostAddress;
-    //     save();
-    // }
-
     public FormValidation doCheckCredentialToken(@QueryParameter String value) {
         if (StringUtils.isEmpty(value)) {
             return FormValidation.warning("Please set access token.");
@@ -121,14 +95,17 @@ public class UserConfiguration extends GlobalConfiguration {
     {
         return new ListBoxModel(new Option("FORTICWP GLOBAL", DEFAULT_PROTOCOL + FORTICWP_HOST),
                                 new Option("FORTICWP EU", DEFAULT_PROTOCOL + FORTICWP_EU_HOST),
-                                new Option("QA1 (beta release)", DEFAULT_PROTOCOL + "qa1.staging.forticwp.com"));
+                                new Option("QA1 (beta release)", DEFAULT_PROTOCOL + "qa1.staging.forticwp.com")); // remove in offical release
     }
 
     @POST
     public FormValidation doTestConnection(
             @QueryParameter("webHostAddress") String webHostAddress,
             @QueryParameter("credentialToken") String credentialToken,
-            @QueryParameter("manualControllerHostAddress") String manualControllerHostAddress) {
+            @QueryParameter("manualHostAddress") String manualHostAddress,
+            @QueryParameter("enableManualHostCheck") boolean enableManualHostCheck) {
+        //System.out.println(webHostAddress + "," + manualHostAddress + "," + enableManualHostCheck);
+
         // only allow admin to check connection
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
 
@@ -136,9 +113,13 @@ public class UserConfiguration extends GlobalConfiguration {
             return FormValidation.error("Please set access token");
         }
 
+        if (enableManualHostCheck && StringUtils.isEmpty(manualHostAddress)) {
+            return FormValidation.error("Please set host address");
+        }
+
         try {
-            boolean useControllerHost = !manualControllerHostAddress.isEmpty();
-            String hostAddress = useControllerHost ? manualControllerHostAddress : webHostAddress;
+            boolean useControllerHost = enableManualHostCheck && !manualHostAddress.isEmpty();
+            String hostAddress = useControllerHost ? manualHostAddress : webHostAddress;
 
             // constructor throws exception if fail to connect to the first available controller
             FortiContainerClient containerClient = new FortiContainerClient(hostAddress, credentialToken, useControllerHost);
