@@ -29,9 +29,10 @@ public class UserConfiguration extends GlobalConfiguration {
     static private final String DEFAULT_PROTOCOL = "http://";
 
     private String webHostAddress;
-    private Secret credentialToken;
+    //private Secret credentialToken;
     private String manualHostAddress;
     private boolean enableManualHostCheck;
+    private Secret credentialTokenSecret;
 
     public UserConfiguration() {
         // When Jenkins is restarted, load any saved configuration from disk.
@@ -42,8 +43,13 @@ public class UserConfiguration extends GlobalConfiguration {
         return webHostAddress;
     }
 
-    public String getCredentialToken() {
-        return Secret.toString(credentialToken);
+    public String getCredentialTokenString() {
+        return Secret.toString(credentialTokenSecret);
+    }
+
+    public Secret getCredentialTokenSecret() {
+        System.out.println("getCredentialTokenSecret():" + credentialTokenSecret.getPlainText());
+        return credentialTokenSecret;
     }
 
     // return address by check box status
@@ -57,6 +63,12 @@ public class UserConfiguration extends GlobalConfiguration {
     
     public boolean getEnableManualHostCheck() {
         return enableManualHostCheck;
+    }
+
+    @DataBoundSetter
+    public void setCredentialTokenSecret(Secret credentialTokenSecret) {
+        this.credentialTokenSecret = credentialTokenSecret;
+        save();
     }
 
     @DataBoundSetter
@@ -77,15 +89,9 @@ public class UserConfiguration extends GlobalConfiguration {
         save();
     }
 
-    @DataBoundSetter
-    public void setCredentialToken(String credentialToken) {
-        this.credentialToken = Secret.fromString(credentialToken);
-        save();
-    }
-
-    public FormValidation doCheckCredentialToken(@QueryParameter String value) {
-        if (StringUtils.isEmpty(value)) {
-            return FormValidation.warning("Please set access token.");
+    public FormValidation doCheckCredentialTokenSecret(@QueryParameter Secret secret) {
+        if (StringUtils.isEmpty(Secret.toString(secret))) {
+            return FormValidation.warning("Please set access token");
         }
         return FormValidation.ok();
     }
@@ -101,13 +107,16 @@ public class UserConfiguration extends GlobalConfiguration {
     @POST
     public FormValidation doTestConnection(
             @QueryParameter("webHostAddress") String webHostAddress,
-            @QueryParameter("credentialToken") String credentialToken,
+            @QueryParameter("credentialTokenSecret") Secret credentialTokenSecret,
             @QueryParameter("manualHostAddress") String manualHostAddress,
             @QueryParameter("enableManualHostCheck") boolean enableManualHostCheck) {
         //System.out.println(webHostAddress + "," + manualHostAddress + "," + enableManualHostCheck);
 
         // only allow admin to check connection
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+
+        String credentialToken = Secret.toString(credentialTokenSecret);
+        //System.out.println("credentialToken:" + credentialToken);
 
         if (StringUtils.isEmpty(credentialToken)) {
             return FormValidation.error("Please set access token");

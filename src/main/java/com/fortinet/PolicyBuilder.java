@@ -72,7 +72,7 @@ public class PolicyBuilder extends Builder implements SimpleBuildStep {
             return;
         }
 
-        SessionInfo sessionInfo = new SessionInfo(controllerHost, userConfiguration.getCredentialToken());
+        SessionInfo sessionInfo = new SessionInfo(controllerHost, userConfiguration.getCredentialTokenString());
 
         EnvVars envVars = run.getEnvironment(listener);
 

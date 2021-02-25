@@ -2,12 +2,13 @@
 <?jelly escape-by-default='true'?>
 <!-- <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form"> -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson"  xmlns:f="/lib/form">
-    <f:section title="FortiCWP CICD Plugin Configuration">
+    <f:section title="FortiCWP CICD Integration Configuration">
         <f:entry title="FortiCWP Login Region" field="webHostAddress">
             <f:select/>
         </f:entry>
-        <f:entry title="Access Token">
-            <f:password field="credentialToken"/>
+
+        <f:entry title="Access Token" field="credentialTokenSecret">
+            <f:secretTextarea placeholder="Enter Access Token Here"/>
         </f:entry>
 
         <!-- inline true decouples the objects inside optional block -->
@@ -20,6 +21,6 @@
         </f:optionalBlock>
 
         <f:validateButton title="Verify Settings" progress="Testing Protector Connection ..."
-         method="testConnection" with="webHostAddress,credentialToken,manualHostAddress,enableManualHostCheck" />
+         method="testConnection" with="webHostAddress,credentialTokenSecret,manualHostAddress,enableManualHostCheck" />
     </f:section>
 </j:jelly>

@@ -51,7 +51,7 @@ public class FortiContainerClient {
             throw new RuntimeException("cannot get controller host");
         }
 
-        sessionInfo = new SessionInfo(controllerHost, userConfiguration.getCredentialToken());        
+        sessionInfo = new SessionInfo(controllerHost, userConfiguration.getCredentialTokenString());        
 
         //System.out.println("Protector host address: " + sessionInfo.getControllerHostUrl() + ", token: " + sessionInfo.getControllerToken());
         // try {

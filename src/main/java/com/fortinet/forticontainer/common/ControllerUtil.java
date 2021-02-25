@@ -89,7 +89,7 @@ public class ControllerUtil {
             UserConfiguration userConfig = UserConfiguration.get();
             for (Object hostAddrObj : hostList) {
                 String hostAddr = hostAddrObj.toString();
-                if (checkControllerConnection(hostAddr, userConfig.getCredentialToken())) {
+                if (checkControllerConnection(hostAddr, userConfig.getCredentialTokenString())) {
                     return hostAddr;
                 }
             }
@@ -131,7 +131,7 @@ public class ControllerUtil {
             try {
                 String controllerHost = userConfiguration.getManualHostAddressByCheck() == null
                                         || userConfiguration.getManualHostAddressByCheck().isEmpty() ?
-                                        ControllerUtil.requestControllerHostUrl(userConfiguration.getWebHostAddress(), userConfiguration.getCredentialToken()) :
+                                        ControllerUtil.requestControllerHostUrl(userConfiguration.getWebHostAddress(), userConfiguration.getCredentialTokenString()) :
                                         userConfiguration.getManualHostAddressByCheck();
     
                 ps.println("Using Protector host: " + controllerHost);
