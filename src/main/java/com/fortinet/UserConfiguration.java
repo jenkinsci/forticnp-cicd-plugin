@@ -48,7 +48,7 @@ public class UserConfiguration extends GlobalConfiguration {
     }
 
     public Secret getCredentialTokenSecret() {
-        System.out.println("getCredentialTokenSecret():" + credentialTokenSecret.getPlainText());
+        //System.out.println("getCredentialTokenSecret():" + credentialTokenSecret.getPlainText());
         return credentialTokenSecret;
     }
 
