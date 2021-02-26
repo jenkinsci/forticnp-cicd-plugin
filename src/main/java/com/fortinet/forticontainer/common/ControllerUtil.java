@@ -89,9 +89,8 @@ public class ControllerUtil {
             UserConfiguration userConfig = UserConfiguration.get();
             for (Object hostAddrObj : hostList) {
                 String hostAddr = hostAddrObj.toString();
-                if (checkControllerConnection(hostAddr, userConfig.getCredentialTokenString())) {
-                    return hostAddr;
-                }
+                checkControllerConnection(hostAddr, userConfig.getCredentialTokenString());
+                return hostAddr;
             }
         }
         return "";
@@ -145,7 +144,7 @@ public class ControllerUtil {
         return "";
     }
 
-    public static Boolean checkControllerConnection(String host, String token) throws Exception {
+    public static void checkControllerConnection(String host, String token) throws Exception {
         if (host.isEmpty()) {
             throw new RuntimeException("get empty protector host address");
         } else {
@@ -160,10 +159,8 @@ public class ControllerUtil {
     
             int responseCode = conn.getResponseCode();
             //System.out.println("checkConnection Response Code : " + responseCode);
-            if (responseCode == HttpURLConnection.HTTP_OK) { // success
-                return true;
-            } else {
-                return false;
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new RuntimeException("cannot verify health status on: " + host + ", HTTP response: " + responseCode);
             }
         }
     }
