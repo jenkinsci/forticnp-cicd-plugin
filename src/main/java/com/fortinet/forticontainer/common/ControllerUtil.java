@@ -102,26 +102,32 @@ public class ControllerUtil {
         final String hostKey = "host";
         final String nodeHostIpKey = "nodeHostIp";
 
+        // uses nodeHostIp
         List<JSONArray> allHosts = new ArrayList<JSONArray>();
-        if (!jsonObj.get(serviceIpKey).equals(JSONNull.getInstance())) {
-            allHosts.add(jsonObj.getJSONArray(serviceIpKey));
-        }
-        if (!jsonObj.get(hostKey).equals(JSONNull.getInstance())) {
-            allHosts.add(jsonObj.getJSONArray(hostKey));
-        }
         if (!jsonObj.get(nodeHostIpKey).equals(JSONNull.getInstance())) {
             allHosts.add(jsonObj.getJSONArray(nodeHostIpKey));
         }
 
-        // internal order, serviceIp -> host -> nodeHostIp, pick the first online one
+        Exception ex = null;
         for (JSONArray hostList : allHosts) {
-            String controllerHost = getOnlineControllerHostByHostList(hostList);
-            if (!controllerHost.isEmpty()) {
-                return controllerHost;
+            try {
+                String controllerHost = getOnlineControllerHostByHostList(hostList);
+                if (!controllerHost.isEmpty()) {
+                    return controllerHost;
+                }
+            } catch (Exception e) {
+                // catch exception and try next one
+                ex = e;
+                continue;
             }
         }
 
-        throw new RuntimeException("cannot get an online protector host");
+        String exMsg = "cannot get an online protector host";
+        if (ex != null) {
+            exMsg += ": " + ex.getMessage();
+        }
+
+        throw new RuntimeException(exMsg);
     }
 
     public static String getControllerHostByUserConfig(UserConfiguration userConfiguration, PrintStream ps) {
