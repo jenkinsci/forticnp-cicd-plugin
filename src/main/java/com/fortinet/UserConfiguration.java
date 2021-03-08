@@ -24,13 +24,15 @@ public class UserConfiguration extends GlobalConfiguration {
         return GlobalConfiguration.all().get(UserConfiguration.class);
     }
 
-    static private final String FORTICWP_HOST = "https://www.forticwp.com";
-    static private final String FORTICWP_EU_HOST = "https://eu.forticwp.com";
+    static private final String FORTICWP_HOST = "www.forticwp.com";
+    static private final String FORTICWP_EU_HOST = "eu.forticwp.com";
+    static private final String DEFAULT_PROTOCOL = "http://";
 
-    // fortics-web host
     private String webHostAddress;
-    private Secret credentialToken;
-    private String manualControllerHostAddress;
+    //private Secret credentialToken;
+    private String manualHostAddress;
+    private boolean enableManualHostCheck;
+    private Secret credentialTokenSecret;
 
     public UserConfiguration() {
         // When Jenkins is restarted, load any saved configuration from disk.
@@ -41,12 +43,44 @@ public class UserConfiguration extends GlobalConfiguration {
         return webHostAddress;
     }
 
-    public String getCredentialToken() {
-        return Secret.toString(credentialToken);
+    public String getCredentialTokenString() {
+        return Secret.toString(credentialTokenSecret);
     }
 
-    public String getManualControllerHostAddress() {
-        return manualControllerHostAddress;
+    public Secret getCredentialTokenSecret() {
+        //System.out.println("getCredentialTokenSecret():" + credentialTokenSecret.getPlainText());
+        return credentialTokenSecret;
+    }
+
+    // return address by check box status
+    public String getManualHostAddressByCheck() {
+        return enableManualHostCheck ? manualHostAddress : "";
+    }
+
+    public String getManualHostAddress() {
+        return getManualHostAddressByCheck();
+    }
+    
+    public boolean getEnableManualHostCheck() {
+        return enableManualHostCheck;
+    }
+
+    @DataBoundSetter
+    public void setCredentialTokenSecret(Secret credentialTokenSecret) {
+        this.credentialTokenSecret = credentialTokenSecret;
+        save();
+    }
+
+    @DataBoundSetter
+    public void setEnableManualHostCheck(boolean check) {
+        this.enableManualHostCheck = check;
+        save();
+    }
+
+    @DataBoundSetter
+    public void setManualHostAddress(String hostAddress) {
+        this.manualHostAddress = hostAddress;
+        save();
     }
 
     @DataBoundSetter
@@ -55,21 +89,9 @@ public class UserConfiguration extends GlobalConfiguration {
         save();
     }
 
-    @DataBoundSetter
-    public void setCredentialToken(String credentialToken) {
-        this.credentialToken = Secret.fromString(credentialToken);
-        save();
-    }
-
-    @DataBoundSetter
-    public void setManualControllerHostAddress(String controllerHostAddress) {
-        this.manualControllerHostAddress = controllerHostAddress;
-        save();
-    }
-
-    public FormValidation doCheckCredentialToken(@QueryParameter String value) {
-        if (StringUtils.isEmpty(value)) {
-            return FormValidation.warning("Please set access token.");
+    public FormValidation doCheckCredentialTokenSecret(@QueryParameter Secret secret) {
+        if (StringUtils.isEmpty(Secret.toString(secret))) {
+            return FormValidation.warning("Please set access token");
         }
         return FormValidation.ok();
     }
@@ -77,31 +99,36 @@ public class UserConfiguration extends GlobalConfiguration {
     // dynamically fill web host list
     public ListBoxModel doFillWebHostAddressItems()
     {
-        return new ListBoxModel(new Option("FORTICWP GLOBAL", FORTICWP_HOST),
-                                new Option("FORTICWP EU", FORTICWP_EU_HOST),
-                                new Option("QA (will remove later)", "https://qa.staging.forticontainer.com"),
-                                new Option("QA1 (will remove later)", "https://qa1.staging.forticwp.com"));
-
-        // for beta testing, restore if needed
-        // new Option("QA (will remove later)", "https://qa.staging.forticontainer.com"),
-        // new Option("QA1 (will remove later)", "https://qa1.staging.forticwp.com"));
+        return new ListBoxModel(new Option("FORTICWP GLOBAL", DEFAULT_PROTOCOL + FORTICWP_HOST),
+                                new Option("FORTICWP EU", DEFAULT_PROTOCOL + FORTICWP_EU_HOST),
+                                new Option("QA1 (beta release)", DEFAULT_PROTOCOL + "qa1.staging.forticwp.com")); // remove in offical release
     }
 
     @POST
     public FormValidation doTestConnection(
             @QueryParameter("webHostAddress") String webHostAddress,
-            @QueryParameter("credentialToken") String credentialToken,
-            @QueryParameter("manualControllerHostAddress") String manualControllerHostAddress) {
+            @QueryParameter("credentialTokenSecret") Secret credentialTokenSecret,
+            @QueryParameter("manualHostAddress") String manualHostAddress,
+            @QueryParameter("enableManualHostCheck") boolean enableManualHostCheck) {
+        //System.out.println(webHostAddress + "," + manualHostAddress + "," + enableManualHostCheck);
+
         // only allow admin to check connection
         Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+
+        String credentialToken = Secret.toString(credentialTokenSecret);
+        //System.out.println("credentialToken:" + credentialToken);
 
         if (StringUtils.isEmpty(credentialToken)) {
             return FormValidation.error("Please set access token");
         }
 
+        if (enableManualHostCheck && StringUtils.isEmpty(manualHostAddress)) {
+            return FormValidation.error("Please set host address");
+        }
+
         try {
-            boolean useControllerHost = !manualControllerHostAddress.isEmpty();
-            String hostAddress = useControllerHost ? manualControllerHostAddress : webHostAddress;
+            boolean useControllerHost = enableManualHostCheck && !manualHostAddress.isEmpty();
+            String hostAddress = useControllerHost ? manualHostAddress : webHostAddress;
 
             // constructor throws exception if fail to connect to the first available controller
             FortiContainerClient containerClient = new FortiContainerClient(hostAddress, credentialToken, useControllerHost);

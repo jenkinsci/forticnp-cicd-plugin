@@ -89,9 +89,8 @@ public class ControllerUtil {
             UserConfiguration userConfig = UserConfiguration.get();
             for (Object hostAddrObj : hostList) {
                 String hostAddr = hostAddrObj.toString();
-                if (checkControllerConnection(hostAddr, userConfig.getCredentialToken())) {
-                    return hostAddr;
-                }
+                checkControllerConnection(hostAddr, userConfig.getCredentialTokenString());
+                return hostAddr;
             }
         }
         return "";
@@ -103,36 +102,42 @@ public class ControllerUtil {
         final String hostKey = "host";
         final String nodeHostIpKey = "nodeHostIp";
 
+        // uses nodeHostIp
         List<JSONArray> allHosts = new ArrayList<JSONArray>();
-        if (!jsonObj.get(serviceIpKey).equals(JSONNull.getInstance())) {
-            allHosts.add(jsonObj.getJSONArray(serviceIpKey));
-        }
-        if (!jsonObj.get(hostKey).equals(JSONNull.getInstance())) {
-            allHosts.add(jsonObj.getJSONArray(hostKey));
-        }
         if (!jsonObj.get(nodeHostIpKey).equals(JSONNull.getInstance())) {
             allHosts.add(jsonObj.getJSONArray(nodeHostIpKey));
         }
 
-        // internal order, serviceIp -> host -> nodeHostIp, pick the first online one
+        Exception ex = null;
         for (JSONArray hostList : allHosts) {
-            String controllerHost = getOnlineControllerHostByHostList(hostList);
-            if (!controllerHost.isEmpty()) {
-                return controllerHost;
+            try {
+                String controllerHost = getOnlineControllerHostByHostList(hostList);
+                if (!controllerHost.isEmpty()) {
+                    return controllerHost;
+                }
+            } catch (Exception e) {
+                // catch exception and try next one
+                ex = e;
+                continue;
             }
         }
 
-        throw new RuntimeException("cannot get an online protector host");
+        String exMsg = "cannot get an online protector host";
+        if (ex != null) {
+            exMsg += ": " + ex.getMessage();
+        }
+
+        throw new RuntimeException(exMsg);
     }
 
     public static String getControllerHostByUserConfig(UserConfiguration userConfiguration, PrintStream ps) {
         final int tries = 3;
         for (int i = 0; i < tries; ++ i) {
             try {
-                String controllerHost = userConfiguration.getManualControllerHostAddress() == null
-                                        || userConfiguration.getManualControllerHostAddress().isEmpty() ?
-                                        ControllerUtil.requestControllerHostUrl(userConfiguration.getWebHostAddress(), userConfiguration.getCredentialToken()) :
-                                        userConfiguration.getManualControllerHostAddress();
+                String controllerHost = userConfiguration.getManualHostAddressByCheck() == null
+                                        || userConfiguration.getManualHostAddressByCheck().isEmpty() ?
+                                        ControllerUtil.requestControllerHostUrl(userConfiguration.getWebHostAddress(), userConfiguration.getCredentialTokenString()) :
+                                        userConfiguration.getManualHostAddressByCheck();
     
                 ps.println("Using Protector host: " + controllerHost);
                 return controllerHost;
@@ -145,7 +150,7 @@ public class ControllerUtil {
         return "";
     }
 
-    public static Boolean checkControllerConnection(String host, String token) throws Exception {
+    public static void checkControllerConnection(String host, String token) throws Exception {
         if (host.isEmpty()) {
             throw new RuntimeException("get empty protector host address");
         } else {
@@ -160,10 +165,8 @@ public class ControllerUtil {
     
             int responseCode = conn.getResponseCode();
             //System.out.println("checkConnection Response Code : " + responseCode);
-            if (responseCode == HttpURLConnection.HTTP_OK) { // success
-                return true;
-            } else {
-                return false;
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new RuntimeException("cannot verify health status on: " + host + ", HTTP response: " + responseCode);
             }
         }
     }

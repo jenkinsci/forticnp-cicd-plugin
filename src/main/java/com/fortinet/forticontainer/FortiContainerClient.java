@@ -35,8 +35,9 @@ public class FortiContainerClient {
         // check physical connection
         String controllerHostUrl = useControllerHost ? hostUrl : ControllerUtil.requestControllerHostUrl(hostUrl, credentialToken);
 
-        if (useControllerHost && !ControllerUtil.checkControllerConnection(hostUrl, credentialToken)) {
-            throw new RuntimeException("cannot verify connection to to " + hostUrl);
+        // connection is verified in requestControllerHostUrl(), so only check hostUrl
+        if (useControllerHost) {
+            ControllerUtil.checkControllerConnection(hostUrl, credentialToken);
         }
     
         // session info is aquired only if the physical connection is good
@@ -51,7 +52,7 @@ public class FortiContainerClient {
             throw new RuntimeException("cannot get controller host");
         }
 
-        sessionInfo = new SessionInfo(controllerHost, userConfiguration.getCredentialToken());        
+        sessionInfo = new SessionInfo(controllerHost, userConfiguration.getCredentialTokenString());        
 
         //System.out.println("Protector host address: " + sessionInfo.getControllerHostUrl() + ", token: " + sessionInfo.getControllerToken());
         // try {
