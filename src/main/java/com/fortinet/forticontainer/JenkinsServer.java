@@ -53,7 +53,8 @@ public class JenkinsServer {
     }
 
     public static Boolean reserveJob(SessionInfo sessionInfo, String jobId) throws IOException {
-        final String serverUrl = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_FORWARD;
+        final String serverUrl = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_RESERVE_JOB + "/" + jobId;
+        System.out.println("server url: " + serverUrl);
         URL instanceUrl = new URL(serverUrl);
         HttpURLConnection conn = (HttpURLConnection) instanceUrl.openConnection();
 
@@ -62,9 +63,6 @@ public class JenkinsServer {
             conn.setDoOutput(true);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty(ControllerUtil.HEADER_CONTROLLER_TOKEN, sessionInfo.getControllerToken());
-            conn.setRequestProperty(ControllerUtil.HEADER_URL_PATH, ControllerUtil.URI_RESERVE_JOB + "/" + jobId);
-            conn.setRequestProperty(ControllerUtil.HEADER_HTTP_METHOD, "POST");
-
             conn.getOutputStream().write(new byte[0]);
 
             if (conn.getResponseCode() == 200) {
