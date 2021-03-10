@@ -72,24 +72,33 @@ public class FortiContainerClient {
             // TBD - reserve job id
 
             final Integer retry = 5;
-            final Integer retryDelay = 1000;
+            Integer retryDelay = 1000;
             final Integer retryDelayFactor = 2;
 
             //upload image to controller
             for(String imageName : images) {
-                try {
-                    Boolean uploadResult = JenkinsServer.uploadImage(jobId, imageName, sessionInfo, ps);
-                    imageResultMap.put(imageName, uploadResult);
-    
-                    if (uploadResult) {
-                        ps.println("image: " + imageName + " has been uploaded to host");
-                    } else {
-                        throw new RuntimeException("image: " + imageName + " was not uploaded to host");
+                for (Integer i = 0; i < retry; ++i) {
+                    try {
+                        Boolean uploadResult = JenkinsServer.uploadImage(jobId, imageName, sessionInfo, ps);
+                        imageResultMap.put(imageName, uploadResult);
+        
+                        if (uploadResult) {
+                            ps.println("image: " + imageName + " has been uploaded to host");
+                        } else {
+                            throw new RuntimeException("image: " + imageName + " was not uploaded to host");
+                        }
+                        
+                        // exit retry loop
+                        break;
+
+                    } catch (Exception e) {
+                        if (i == retry - 1) {
+                            throw e;
+                        }
+
+                        Thread.sleep(retryDelay);
+                        retryDelay = retryDelay * retryDelayFactor;
                     }
-                } catch (Exception e) {
-
-                } finally {
-
                 }
             }
 
