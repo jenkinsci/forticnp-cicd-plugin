@@ -52,6 +52,33 @@ public class JenkinsServer {
 
     }
 
+    public static Boolean reserveJob(SessionInfo sessionInfo, String jobId) throws IOException {
+        final String serverUrl = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_FORWARD;
+        URL instanceUrl = new URL(serverUrl);
+        HttpURLConnection conn = (HttpURLConnection) instanceUrl.openConnection();
+
+        try {
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty(ControllerUtil.HEADER_CONTROLLER_TOKEN, sessionInfo.getControllerToken());
+            conn.setRequestProperty(ControllerUtil.HEADER_URL_PATH, ControllerUtil.URI_RESERVE_JOB + "/" + jobId);
+            conn.setRequestProperty(ControllerUtil.HEADER_HTTP_METHOD, "POST");
+
+            conn.getOutputStream().write(new byte[0]);
+
+            if (conn.getResponseCode() == 200) {
+                return true;
+            } else {
+                System.out.println("reserveJob response code:" + conn.getResponseCode());
+                return false;
+            }
+        } catch (IOException e) {
+            System.out.println("reserveJob failed, exception: " + e.getMessage());
+            throw e;
+        }
+    }
+
     public static String addJob(SessionInfo sessionInfo, CurrentBuildInfo currentBuildInfo) throws IOException{
         //set up
         Map<String, String> jsonMap = new HashMap<>();

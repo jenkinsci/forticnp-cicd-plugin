@@ -29,6 +29,7 @@ public class ControllerUtil {
     public static final String URI_JENKINS_FORWARD = "/api/v1/forward";
     public static final String URI_JENKINS_IMAGE = "/api/v1/jenkins/image";
     public static final String URI_MONITOR_HEALTH = "/monitor/health";
+    public static final String URI_RESERVE_JOB = "/api/v1/jenkins/reserve";
 
     // web api
     public static final String URI_AUTH_CREDENTIALS_TOKEN = "/api/v1/auth/credentials/token";
