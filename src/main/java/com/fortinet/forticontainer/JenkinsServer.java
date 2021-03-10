@@ -113,7 +113,9 @@ public class JenkinsServer {
 
             inputStream.close();
             output = sb.toString();
-            return output;
+            JSONObject jsonOutput = JSONObject.fromObject(output);
+            long jobId = jsonOutput.getLong("jenkinsId");
+            return Long.toString(jobId);
         } catch (IOException e) {
             System.out.println("addJob failed, exception: " + e.getMessage());
             throw e;
