@@ -60,7 +60,7 @@ public class JenkinsServer {
         jsonMap.put("buildNumber", currentBuildInfo.getBuildNumber());
 
 
-        final String serverUrl = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_JOB;
+        final String serverUrl = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_FORWARD;
         URL instanceUrl = new URL(serverUrl);
         HttpURLConnection conn = (HttpURLConnection) instanceUrl.openConnection();
 
@@ -74,6 +74,8 @@ public class JenkinsServer {
             conn.setDoOutput(true);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty(ControllerUtil.HEADER_CONTROLLER_TOKEN, sessionInfo.getControllerToken());
+            conn.setRequestProperty(ControllerUtil.HEADER_URL_PATH, ControllerUtil.URI_JENKINS_JOB);
+            conn.setRequestProperty(ControllerUtil.HEADER_HTTP_METHOD, "POST");
             conn.getOutputStream().write(jsonObject.toString().getBytes("UTF-8"));
 
             inputStream = conn.getInputStream();
@@ -154,17 +156,20 @@ public class JenkinsServer {
         Map<String, Integer> jsonMap = new HashMap<>();
         jsonMap.put("status", statusCode);
 
-        final String updateJobStatusUrl = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_JOB + "/" + jobId;
+        final String updateJobStatusUrl = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_FORWARD;
         System.out.println("the update status url is " + updateJobStatusUrl);
         URL instanceUrl = new URL(updateJobStatusUrl);
         HttpURLConnection conn = (HttpURLConnection) instanceUrl.openConnection();
         try {
             JSONObject jsonObject = JSONObject.fromObject(jsonMap);
 
-            conn.setRequestMethod("PUT");
+            conn.setRequestMethod("POST");
             conn.setDoOutput(true);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty(ControllerUtil.HEADER_CONTROLLER_TOKEN, sessionInfo.getControllerToken());
+            conn.setRequestProperty(ControllerUtil.HEADER_URL_PATH, ControllerUtil.URI_JENKINS_JOB + "/" + jobId);
+            conn.setRequestProperty(ControllerUtil.HEADER_HTTP_METHOD, "PUT");
+
             conn.getOutputStream().write(jsonObject.toString().getBytes("UTF-8"));
 
             int responseCode =  conn.getResponseCode();
@@ -181,18 +186,19 @@ public class JenkinsServer {
 
     public static Integer checkJobStatus(SessionInfo sessionInfo, String jobId, PrintStream ps) throws IOException {
 
-        final String checkJobStatusUrl = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_JOB + "/" + jobId;
+        final String checkJobStatusUrl = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_FORWARD;
         System.out.println("job status API url is " + checkJobStatusUrl);
         URL instanceUrl = new URL(checkJobStatusUrl);
         HttpURLConnection conn = (HttpURLConnection) instanceUrl.openConnection();
 
         BufferedReader br = null;
         try {
-            conn.setRequestMethod("GET");
+            conn.setRequestMethod("POST");
             conn.setDoOutput(true);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty(ControllerUtil.HEADER_CONTROLLER_TOKEN, sessionInfo.getControllerToken());
-
+            conn.setRequestProperty(ControllerUtil.HEADER_URL_PATH, ControllerUtil.URI_JENKINS_JOB + "/" + jobId);
+            conn.setRequestProperty(ControllerUtil.HEADER_HTTP_METHOD, "GET");
             int responseCode =  conn.getResponseCode();
             System.out.println("job status API response code: " + responseCode);
             final InputStream inputStream = conn.getInputStream();

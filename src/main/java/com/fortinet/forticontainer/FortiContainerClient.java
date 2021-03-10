@@ -64,6 +64,9 @@ public class FortiContainerClient {
             //System.out.println("Add jenkins job to host, the jenkins jobId is " + jobId);
             currentBuildInfo.setJenkinsJobId(jobId);
 
+            // TBD - reserve job id
+
+
             //upload image to controller
             for(String imageName : images) {
                 Boolean uploadResult = JenkinsServer.uploadImage(jobId, imageName, sessionInfo, ps);
