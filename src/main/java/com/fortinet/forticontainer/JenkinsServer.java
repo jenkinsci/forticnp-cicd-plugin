@@ -226,6 +226,7 @@ public class JenkinsServer {
             conn.setRequestProperty(ControllerUtil.HEADER_CONTROLLER_TOKEN, sessionInfo.getControllerToken());
             conn.setRequestProperty(ControllerUtil.HEADER_URL_PATH, ControllerUtil.URI_JENKINS_JOB + "/" + jobId);
             conn.setRequestProperty(ControllerUtil.HEADER_HTTP_METHOD, "GET");
+            conn.getOutputStream().write(new byte[0]);
             int responseCode =  conn.getResponseCode();
             System.out.println("job status API response code: " + responseCode);
             final InputStream inputStream = conn.getInputStream();
