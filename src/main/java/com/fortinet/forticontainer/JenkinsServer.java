@@ -220,13 +220,14 @@ public class JenkinsServer {
 
         BufferedReader br = null;
         try {
+            JSONObject jsonObject = new JSONObject();
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty(ControllerUtil.HEADER_CONTROLLER_TOKEN, sessionInfo.getControllerToken());
             conn.setRequestProperty(ControllerUtil.HEADER_URL_PATH, ControllerUtil.URI_JENKINS_JOB + "/" + jobId);
             conn.setRequestProperty(ControllerUtil.HEADER_HTTP_METHOD, "GET");
-            conn.getOutputStream().write(new byte[0]);
+            conn.getOutputStream().write(jsonObject.toString().getBytes("UTF-8"));
             int responseCode =  conn.getResponseCode();
             System.out.println("job status API response code: " + responseCode);
             final InputStream inputStream = conn.getInputStream();
