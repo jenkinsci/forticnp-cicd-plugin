@@ -152,7 +152,7 @@ public class JenkinsServer {
         }
 
         //save docker to fileName;
-        String imageFilePath = String.format("/tmp/%s.tar",fileName+jobId);
+        String imageFilePath = String.format("/tmp/%s.tar",fileName);
         File imageFile = new File(imageFilePath);
         if(!imageFile.exists()) {
             ps.println("The image file does not exist: " + imageFile.getAbsolutePath());
