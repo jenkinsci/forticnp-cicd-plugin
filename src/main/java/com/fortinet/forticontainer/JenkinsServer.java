@@ -134,7 +134,7 @@ public class JenkinsServer {
         System.out.println("the encode name is " + fileName);
         Runtime runtime = Runtime.getRuntime();
         Boolean result = false;
-        String saveDockerCmd = String.format("docker save %s -o /tmp/%s.tar", imageName, fileName+jobId);
+        String saveDockerCmd = String.format("docker save %s -o /tmp/%s.tar", imageName, fileName);
         System.out.println("the saveDockerCmd is " + saveDockerCmd);
         ps.println("saving docker file to local: " + saveDockerCmd);
         Process process = runtime.exec(saveDockerCmd);
