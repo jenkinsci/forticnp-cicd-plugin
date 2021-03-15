@@ -177,7 +177,7 @@ public class JenkinsServer {
         }
     }
 
-    public static Boolean uploadImage(String jobId, String imageName,SessionInfo sessionInfo, PrintStream ps) throws IOException {
+    public static Boolean uploadImage(String jobId, String imageName, String imageId, SessionInfo sessionInfo, PrintStream ps) throws IOException {
         String fileName = URLEncoder.encode(imageName,"UTF-8");
         System.out.println("the encode name is " + fileName);
         Runtime runtime = Runtime.getRuntime();
@@ -207,7 +207,7 @@ public class JenkinsServer {
             return false;
         }
         try {
-            result = sendImageFileToServer(imageFilePath, imageName, sessionInfo, jobId);
+            result = sendImageFileToServer(imageFilePath, imageName, imageId, sessionInfo, jobId);
             ps.println("The image has been uploaded for scanning");
         } catch (Exception ex) {
             ps.println("Failed to send image file: " + imageFilePath + " to server, error: " + ex.getMessage());
@@ -320,7 +320,7 @@ public class JenkinsServer {
         return true;
     }
 
-    private static Boolean sendImageFileToServer(String imageFilePath, String imageName, SessionInfo sessionInfo, String jobId) throws Exception {
+    private static Boolean sendImageFileToServer(String imageFilePath, String imageName, String imageId, SessionInfo sessionInfo, String jobId) throws Exception {
         String url = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_IMAGE + "/" + jobId;
         System.out.println("sendImageFileToServer : the url send is : " + url);
         String charset = "UTF-8";
@@ -337,6 +337,7 @@ public class JenkinsServer {
         connection.setDoInput(true);
         connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
         connection.setRequestProperty(ControllerUtil.HEADER_CONTROLLER_TOKEN, sessionInfo.getControllerToken());
+        connection.setRequestProperty(ControllerUtil.HEADER_IMAGE_ID, imageId);
         connection.setRequestProperty("imageName",imageName);
         OutputStream output = connection.getOutputStream();
         PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, charset), true);

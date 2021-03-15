@@ -80,10 +80,13 @@ public class FortiContainerClient {
 
             //upload image to controller
             for(String imageName : images) {
+                ps.println("request imageId");
+                String imageId = JenkinsServer.addImage(sessionInfo, currentBuildInfo, jobId);
+                ps.println("imageId: " + imageId);
                 for (Integer i = 0; i < retry; ++i) {
                     try {
                         ps.println("upload begin");
-                        Boolean uploadResult = JenkinsServer.uploadImage(jobId, imageName, sessionInfo, ps);
+                        Boolean uploadResult = JenkinsServer.uploadImage(jobId, imageName, imageId, sessionInfo, ps);
                         imageResultMap.put(imageName, uploadResult);
         
                         if (uploadResult) {
