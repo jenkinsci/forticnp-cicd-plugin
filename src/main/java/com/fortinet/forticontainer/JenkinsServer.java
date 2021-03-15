@@ -1,5 +1,7 @@
 package com.fortinet.forticontainer;
 
+import com.google.gson.JsonObject;
+import hudson.util.CopyOnWriteMap;
 import net.sf.json.JSONObject;
 
 import java.io.*;
@@ -74,6 +76,52 @@ public class JenkinsServer {
         } catch (IOException e) {
             System.out.println("reserveJob failed, exception: " + e.getMessage());
             throw e;
+        }
+    }
+
+    public static String addImage(SessionInfo sessionInfo, CurrentBuildInfo currentBuildInfo, String jenkinsId) throws IOException {
+        Map<String, String> jsonMap = new HashMap<>();
+        jsonMap.put("jenkinsId", jenkinsId);
+
+        final String serverUrl = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_FORWARD;
+        URL instanceUrl = new URL(serverUrl);
+        HttpURLConnection conn = (HttpURLConnection) instanceUrl.openConnection();
+
+        InputStream inputStream = null;
+        BufferedReader br = null;
+        try {
+            JSONObject jsonObject = JSONObject.fromObject(jsonMap);
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty(ControllerUtil.HEADER_CONTROLLER_TOKEN, sessionInfo.getControllerToken());
+            conn.setRequestProperty(ControllerUtil.HEADER_URL_PATH, ControllerUtil.URI_JENKINS_ADD_IMAGE + "/" + jenkinsId);
+            conn.setRequestProperty(ControllerUtil.HEADER_HTTP_METHOD, "POST");
+            conn.getOutputStream().write(jsonObject.toString().getBytes("UTF-8"));
+
+            inputStream = conn.getInputStream();
+            br = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()));
+            StringBuilder sb = new StringBuilder();
+            String output;
+            while((output = br.readLine()) != null) {
+                sb.append(output);
+            }
+
+            inputStream.close();
+            output = sb.toString();
+            JSONObject jsonOutput = JSONObject.fromObject(output);
+            long imageId = jsonOutput.getLong("imageId");
+            return Long.toString(imageId);
+        } catch(IOException e) {
+            System.out.println("add image failed, exception: " + e.getMessage());
+            throw e;
+        } finally {
+            if(inputStream != null) {
+                inputStream.close();
+            }
+            if(br != null)  {
+                br.close();
+            }
         }
     }
 

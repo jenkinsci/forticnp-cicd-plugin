@@ -24,6 +24,7 @@ public class ControllerUtil {
     public static final String URI_VULNERS_SEARCH = "/api/v1/vulners/search";
     public static final String URI_IMAGES_SEARCH = "/api/v1/images/search";
     public static final String URI_JENKINS_JOB = "/api/v1/jenkins/job";
+    public static final String URI_JENKINS_ADD_IMAGE = "/api/v1/image/jenkins";
 
     // controller local api
     public static final String URI_JENKINS_FORWARD = "/api/v1/forward";
