@@ -77,7 +77,7 @@ public class JenkinsServer {
         }
     }
 
-    public static String addJob(SessionInfo sessionInfo, CurrentBuildInfo currentBuildInfo) throws IOException{
+    public static String addJob(SessionInfo sessionInfo, CurrentBuildInfo currentBuildInfo, PrintStream ps) throws IOException{
         //set up
         Map<String, String> jsonMap = new HashMap<>();
         jsonMap.put("jobName", currentBuildInfo.getJobName());
@@ -93,6 +93,8 @@ public class JenkinsServer {
         BufferedReader br = null;
 
         try {
+            //ps.println("post to: " + serverUrl);
+            //ps.println("body: " + jsonMap.toString());
             JSONObject jsonObject = JSONObject.fromObject(jsonMap);
 
             conn.setRequestMethod("POST");
@@ -102,6 +104,7 @@ public class JenkinsServer {
             conn.setRequestProperty(ControllerUtil.HEADER_URL_PATH, ControllerUtil.URI_JENKINS_JOB);
             conn.setRequestProperty(ControllerUtil.HEADER_HTTP_METHOD, "POST");
             conn.getOutputStream().write(jsonObject.toString().getBytes("UTF-8"));
+            //ps.println("request posted, response code: " + conn.getResponseCode());
 
             inputStream = conn.getInputStream();
             br = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()));
@@ -113,6 +116,7 @@ public class JenkinsServer {
 
             inputStream.close();
             output = sb.toString();
+            //ps.println("response body: " + output);
             JSONObject jsonOutput = JSONObject.fromObject(output);
             long jobId = jsonOutput.getLong("jenkinsId");
             return Long.toString(jobId);

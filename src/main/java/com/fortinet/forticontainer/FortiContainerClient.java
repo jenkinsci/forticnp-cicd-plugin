@@ -56,23 +56,18 @@ public class FortiContainerClient {
 
         //System.out.println("Protector host address: " + sessionInfo.getControllerHostUrl() + ", token: " + sessionInfo.getControllerToken());
         // try {
-            ps.println("add job begin");
-            String jobId = JenkinsServer.addJob(sessionInfo, currentBuildInfo);
+            String jobId = JenkinsServer.addJob(sessionInfo, currentBuildInfo, ps);
             if (jobId.isEmpty() || jobId.equals("")) {
                 //System.out.println("add job failed, sessionInfo: " + sessionInfo.toString() + ", currentBuildInfo: " + currentBuildInfo.toString());
                 throw new RuntimeException("Add job API failed");
             } else {
-                ps.println("add job finish, reserve begin, " + jobId);
                 Boolean reserve = JenkinsServer.reserveJob(sessionInfo, jobId);
-                ps.println("reserve end");
                 if (!reserve) {
                     throw new RuntimeException("Cannot reserve image scan job");
                 }
             }
             //System.out.println("Add jenkins job to host, the jenkins jobId is " + jobId);
             currentBuildInfo.setJenkinsJobId(jobId);
-
-            // TBD - reserve job id
 
             final Integer retry = 5;
             Integer retryDelay = 1000;
@@ -82,7 +77,6 @@ public class FortiContainerClient {
             for(String imageName : images) {
                 for (Integer i = 0; i < retry; ++i) {
                     try {
-                        ps.println("upload begin");
                         Boolean uploadResult = JenkinsServer.uploadImage(jobId, imageName, sessionInfo, ps);
                         imageResultMap.put(imageName, uploadResult);
         

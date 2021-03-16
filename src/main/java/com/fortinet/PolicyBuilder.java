@@ -55,7 +55,7 @@ public class PolicyBuilder extends Builder implements SimpleBuildStep {
     }
 
     @Override
-    public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
+    public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException, RuntimeException {
         PrintStream ps = listener.getLogger();
 
         VulnerabilityAction existingVulnerabilityAction = run.getAction(VulnerabilityAction.class);
@@ -123,7 +123,7 @@ public class PolicyBuilder extends Builder implements SimpleBuildStep {
 
             if (block && currentBuildInfo.getBuildResult() == 50) {
                 run.setResult(Result.FAILURE);
-                return;
+                throw new RuntimeException("Job is blocked by FortiCWPScanner policy");
             } else {
                 run.setResult(Result.SUCCESS);
             }
