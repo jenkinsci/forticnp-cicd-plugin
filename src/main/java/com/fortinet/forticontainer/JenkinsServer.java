@@ -1,5 +1,7 @@
 package com.fortinet.forticontainer;
 
+import com.google.gson.JsonObject;
+import hudson.util.CopyOnWriteMap;
 import net.sf.json.JSONObject;
 
 import java.io.*;
@@ -77,7 +79,53 @@ public class JenkinsServer {
         }
     }
 
-    public static String addJob(SessionInfo sessionInfo, CurrentBuildInfo currentBuildInfo, PrintStream ps) throws IOException{
+    public static String addImage(SessionInfo sessionInfo, CurrentBuildInfo currentBuildInfo, String jenkinsId) throws IOException {
+        Map<String, String> jsonMap = new HashMap<>();
+        jsonMap.put("jenkinsId", jenkinsId);
+
+        final String serverUrl = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_FORWARD;
+        URL instanceUrl = new URL(serverUrl);
+        HttpURLConnection conn = (HttpURLConnection) instanceUrl.openConnection();
+
+        InputStream inputStream = null;
+        BufferedReader br = null;
+        try {
+            JSONObject jsonObject = JSONObject.fromObject(jsonMap);
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty(ControllerUtil.HEADER_CONTROLLER_TOKEN, sessionInfo.getControllerToken());
+            conn.setRequestProperty(ControllerUtil.HEADER_URL_PATH, ControllerUtil.URI_JENKINS_ADD_IMAGE + "/" + jenkinsId);
+            conn.setRequestProperty(ControllerUtil.HEADER_HTTP_METHOD, "POST");
+            conn.getOutputStream().write(jsonObject.toString().getBytes("UTF-8"));
+
+            inputStream = conn.getInputStream();
+            br = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()));
+            StringBuilder sb = new StringBuilder();
+            String output;
+            while((output = br.readLine()) != null) {
+                sb.append(output);
+            }
+
+            inputStream.close();
+            output = sb.toString();
+            JSONObject jsonOutput = JSONObject.fromObject(output);
+            long imageId = jsonOutput.getLong("imageId");
+            return Long.toString(imageId);
+        } catch(IOException e) {
+            System.out.println("add image failed, exception: " + e.getMessage());
+            throw e;
+        } finally {
+            if(inputStream != null) {
+                inputStream.close();
+            }
+            if(br != null)  {
+                br.close();
+            }
+        }
+    }
+
+    public static String addJob(SessionInfo sessionInfo, CurrentBuildInfo currentBuildInfo) throws IOException{
         //set up
         Map<String, String> jsonMap = new HashMap<>();
         jsonMap.put("jobName", currentBuildInfo.getJobName());
@@ -133,7 +181,7 @@ public class JenkinsServer {
         }
     }
 
-    public static Boolean uploadImage(String jobId, String imageName,SessionInfo sessionInfo, PrintStream ps) throws IOException {
+    public static Boolean uploadImage(String jobId, String imageName, String imageId, SessionInfo sessionInfo, PrintStream ps) throws IOException {
         String fileName = URLEncoder.encode(imageName,"UTF-8");
         System.out.println("the encode name is " + fileName);
         Runtime runtime = Runtime.getRuntime();
@@ -163,7 +211,7 @@ public class JenkinsServer {
             return false;
         }
         try {
-            result = sendImageFileToServer(imageFilePath, imageName, sessionInfo, jobId);
+            result = sendImageFileToServer(imageFilePath, imageName, imageId, sessionInfo, jobId);
             ps.println("The image has been uploaded for scanning");
         } catch (Exception ex) {
             ps.println("Failed to send image file: " + imageFilePath + " to server, error: " + ex.getMessage());
@@ -276,7 +324,7 @@ public class JenkinsServer {
         return true;
     }
 
-    private static Boolean sendImageFileToServer(String imageFilePath, String imageName, SessionInfo sessionInfo, String jobId) throws Exception {
+    private static Boolean sendImageFileToServer(String imageFilePath, String imageName, String imageId, SessionInfo sessionInfo, String jobId) throws Exception {
         String url = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_IMAGE + "/" + jobId;
         System.out.println("sendImageFileToServer : the url send is : " + url);
         String charset = "UTF-8";
@@ -293,6 +341,7 @@ public class JenkinsServer {
         connection.setDoInput(true);
         connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
         connection.setRequestProperty(ControllerUtil.HEADER_CONTROLLER_TOKEN, sessionInfo.getControllerToken());
+        connection.setRequestProperty(ControllerUtil.HEADER_IMAGE_ID, imageId);
         connection.setRequestProperty("imageName",imageName);
         OutputStream output = connection.getOutputStream();
         PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, charset), true);

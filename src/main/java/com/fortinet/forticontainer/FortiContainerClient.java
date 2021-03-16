@@ -56,7 +56,7 @@ public class FortiContainerClient {
 
         //System.out.println("Protector host address: " + sessionInfo.getControllerHostUrl() + ", token: " + sessionInfo.getControllerToken());
         // try {
-            String jobId = JenkinsServer.addJob(sessionInfo, currentBuildInfo, ps);
+            String jobId = JenkinsServer.addJob(sessionInfo, currentBuildInfo);
             if (jobId.isEmpty() || jobId.equals("")) {
                 //System.out.println("add job failed, sessionInfo: " + sessionInfo.toString() + ", currentBuildInfo: " + currentBuildInfo.toString());
                 throw new RuntimeException("Add job API failed");
@@ -75,9 +75,12 @@ public class FortiContainerClient {
 
             //upload image to controller
             for(String imageName : images) {
+                ps.println("request imageId");
+                String imageId = JenkinsServer.addImage(sessionInfo, currentBuildInfo, jobId);
+                ps.println("imageId: " + imageId);
                 for (Integer i = 0; i < retry; ++i) {
                     try {
-                        Boolean uploadResult = JenkinsServer.uploadImage(jobId, imageName, sessionInfo, ps);
+                        Boolean uploadResult = JenkinsServer.uploadImage(jobId, imageName, imageId, sessionInfo, ps);
                         imageResultMap.put(imageName, uploadResult);
         
                         if (uploadResult) {
