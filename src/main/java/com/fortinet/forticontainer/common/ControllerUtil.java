@@ -19,17 +19,25 @@ import net.sf.json.JSONObject;
 
 public class ControllerUtil {
 
-    public static final String URI_JENKINS_JOB = "/api/v1/jenkins/job";
-    public static final String URI_JENKINS_IMAGE = "/api/v1/jenkins/image";
-    public static final String URI_JENKINS_FORWARD = "/api/v1/jenkins/forward";
+    // controller forwards to web api
     public static final String URI_POLICY_SEARCH = "/api/v1/policy/search";
     public static final String URI_VULNERS_SEARCH = "/api/v1/vulners/search";
-    public static final String URI_IMAGES_SEARCH = "/api/v1//images/search";
+    public static final String URI_IMAGES_SEARCH = "/api/v1/images/search";
+    public static final String URI_JENKINS_JOB = "/api/v1/jenkins/job";
+    public static final String URI_JENKINS_ADD_IMAGE = "/api/v1/image/jenkins";
+
+    // controller local api
+    public static final String URI_JENKINS_FORWARD = "/api/v1/forward";
+    public static final String URI_JENKINS_IMAGE = "/api/v1/jenkins/image";
+    public static final String URI_MONITOR_HEALTH = "/monitor/health";
+    public static final String URI_RESERVE_JOB = "/api/v1/jenkins/reserve";
+
+    // web api
     public static final String URI_AUTH_CREDENTIALS_TOKEN = "/api/v1/auth/credentials/token";
     public static final String URI_CONTROLLER_HOST = "/api/v1/controller/host";
-    public static final String URI_MONITOR_HEALTH = "/monitor/health";
     
     public static final String HEADER_CONTROLLER_TOKEN = "x-controller-token";
+    public static final String HEADER_IMAGE_ID = "x-image-id";
     public static final String HEADER_URL_PATH = "x-url-path";
     public static final String HEADER_HTTP_METHOD = "x-http-method";
     public static final String HEADER_E_ACCESS_SERVICE = "x-e-access-service";
