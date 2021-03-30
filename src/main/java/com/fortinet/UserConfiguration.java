@@ -26,7 +26,7 @@ public class UserConfiguration extends GlobalConfiguration {
 
     static private final String FORTICWP_HOST = "www.forticwp.com";
     static private final String FORTICWP_EU_HOST = "eu.forticwp.com";
-    static private final String DEFAULT_PROTOCOL = "http://";
+    static private final String DEFAULT_PROTOCOL = "https://";
 
     private String webHostAddress;
     //private Secret credentialToken;
@@ -100,8 +100,9 @@ public class UserConfiguration extends GlobalConfiguration {
     public ListBoxModel doFillWebHostAddressItems()
     {
         return new ListBoxModel(new Option("FORTICWP GLOBAL", DEFAULT_PROTOCOL + FORTICWP_HOST),
-                                new Option("FORTICWP EU", DEFAULT_PROTOCOL + FORTICWP_EU_HOST),
-                                new Option("QA1 (beta release)", DEFAULT_PROTOCOL + "qa1.staging.forticwp.com")); // remove in offical release
+                                new Option("FORTICWP EU", DEFAULT_PROTOCOL + FORTICWP_EU_HOST));
+                                //new Option("QA1 (beta release)", DEFAULT_PROTOCOL + "qa1.staging.forticwp.com"),
+                                //new Option("QA (beta release)", DEFAULT_PROTOCOL + "qa.staging.forticwp.com")); // remove in offical release
     }
 
     @POST
