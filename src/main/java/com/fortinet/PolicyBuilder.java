@@ -5,7 +5,8 @@ import com.fortinet.forticontainer.FortiContainerClient;
 import com.fortinet.forticontainer.JenkinsServer;
 import com.fortinet.forticontainer.SessionInfo;
 import com.fortinet.forticontainer.common.ControllerUtil;
-import com.google.gson.Gson;
+
+import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -20,7 +21,6 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.verb.POST;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -55,12 +55,13 @@ public class PolicyBuilder extends Builder implements SimpleBuildStep {
     }
 
     @Override
-    public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException, RuntimeException {
+    public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener)
+        throws InterruptedException, IOException, AbortException {
         PrintStream ps = listener.getLogger();
 
         VulnerabilityAction existingVulnerabilityAction = run.getAction(VulnerabilityAction.class);
         if (existingVulnerabilityAction != null) {
-            ps.println("fortiCWPScanner already did image scanning");
+            ps.println("Already did image scanning");
             return;
         }
 
@@ -69,7 +70,7 @@ public class PolicyBuilder extends Builder implements SimpleBuildStep {
         String controllerHost = ControllerUtil.getControllerHostByUserConfig(userConfiguration, ps);
         if (controllerHost.isEmpty()) {
             run.setResult(Result.FAILURE);
-            return;
+            throw new AbortException("Cannot get host address to scan the image");
         }
 
         SessionInfo sessionInfo = new SessionInfo(controllerHost, userConfiguration.getCredentialTokenString());
@@ -83,9 +84,8 @@ public class PolicyBuilder extends Builder implements SimpleBuildStep {
         //System.out.println("the jobName is " +jobName + ", jobUrl is " + jobUrl + ", buildNumber is " + buildNumber);
 
         if(imageName == null) {
-            ps.println("image name is not set");
             run.setResult(Result.FAILURE);
-            return;
+            throw new AbortException("Image name is not set");
         }
 
         //System.out.println("imageName: " + imageName + ", block: " + block);
@@ -128,8 +128,8 @@ public class PolicyBuilder extends Builder implements SimpleBuildStep {
                 run.setResult(Result.SUCCESS);
             }
         } catch (Exception ex) {
-            ps.println("Error occured in main task: " + ex.getMessage());
             run.setResult(Result.FAILURE);
+            throw new AbortException(ex.getMessage());
         }
     }
 
