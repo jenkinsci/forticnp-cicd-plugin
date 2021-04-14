@@ -144,7 +144,7 @@ public class ControllerUtil {
             try {
                 String controllerHost = userConfiguration.getManualHostAddressByCheck() == null
                                         || userConfiguration.getManualHostAddressByCheck().isEmpty() ?
-                                        ControllerUtil.requestControllerHostUrl(userConfiguration.getWebHostAddress(), userConfiguration.getCredentialTokenString()) :
+                                        ControllerUtil.requestControllerHostUrl(userConfiguration.getWebHostAddress(), userConfiguration.getCredentialTokenString(), ps) :
                                         userConfiguration.getManualHostAddressByCheck();
     
                 ps.println("Using Protector host: " + controllerHost);
@@ -179,7 +179,7 @@ public class ControllerUtil {
         }
     }
 
-    public static String requestControllerHostUrl(String webHostUrl, String credentialToken) throws Exception {
+    public static String requestControllerHostUrl(String webHostUrl, String credentialToken, PrintStream ps) throws Exception {
         final String accessToken = getAccessToken(webHostUrl, credentialToken);
         //System.out.println("get access token: " + accessToken);
 
@@ -216,8 +216,15 @@ public class ControllerUtil {
                     }
                     
                     output = sb.toString();
-                    //System.out.println(controllerHostApi + " response: " + output);
-    
+
+                    if (ps != null) {
+                        ps.print("in requestControllerHostUrl()");
+                        ps.println("request api: " + controllerHostApiUrl);
+                        ps.println("request header object: " + conn.getHeaderFields().toString());
+                        ps.println("server response code: " + responseCode);
+                        ps.println("server response body: " + output);
+                    }
+
                     JSONObject response = JSONObject.fromObject(output);
                     return getOnlineControllerHostByApiResponse(response);
                 } finally {

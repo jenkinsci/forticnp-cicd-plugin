@@ -33,7 +33,7 @@ public class FortiContainerClient {
 
     public FortiContainerClient(String hostUrl, String credentialToken, boolean useControllerHost) throws Exception {
         // check physical connection
-        String controllerHostUrl = useControllerHost ? hostUrl : ControllerUtil.requestControllerHostUrl(hostUrl, credentialToken);
+        String controllerHostUrl = useControllerHost ? hostUrl : ControllerUtil.requestControllerHostUrl(hostUrl, credentialToken, null);
 
         // connection is verified in requestControllerHostUrl(), so only check hostUrl
         if (useControllerHost) {
