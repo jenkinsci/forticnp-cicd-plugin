@@ -292,6 +292,15 @@ public class JenkinsServer {
                     sb.append(output);
                 }
                 output = sb.toString();
+
+                if (ps != null) {
+                    ps.print("in checkJobStatus()");
+                    ps.println("request api: " + checkJobStatusUrl);
+                    ps.println("request header object: " + conn.getHeaderFields().toString());
+                    ps.println("server response code: " + responseCode);
+                    ps.println("server response body: " + output);
+                }
+
                 JSONObject jsonOutput = JSONObject.fromObject(output);
                 System.out.println("checkJobStatus response: " + jsonOutput);
 
@@ -300,7 +309,9 @@ public class JenkinsServer {
                 System.out.println("result: " + responseResult + ", status: " + responseStatus);
 
                 final ProcessStatusEnum processStatus = ProcessStatusEnum.fromInteger(responseStatus);
-                ps.println("Image scan status: " + processStatus.name());
+                if (ps != null) {
+                    ps.println("Image scan status: " + processStatus.name());
+                }
 
                 inputStream.close();
                 if(responseStatus < 20) {
