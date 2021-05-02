@@ -195,7 +195,7 @@ public class JenkinsServer {
         try {
             exitVal = process.waitFor();
         } catch (InterruptedException e) {
-            ps.println("Failed to upload image " + e.getMessage());
+            ps.println("Failed to save image " + e.getMessage());
         }
 
         if(exitVal != 0) {
