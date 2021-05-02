@@ -96,7 +96,7 @@ public class FortiContainerClient {
                         if (i == retry - 1) {
                             throw e;
                         }
-
+                        ps.println("something wrong when uploading the image, exception: " + e.getMessage());
                         Thread.sleep(retryDelay);
                         retryDelay = retryDelay * retryDelayFactor;
                     }
