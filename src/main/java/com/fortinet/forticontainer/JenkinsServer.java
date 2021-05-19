@@ -181,7 +181,7 @@ public class JenkinsServer {
         }
     }
 
-    public static Boolean uploadImage(String jobId, String imageName, String imageId, SessionInfo sessionInfo, PrintStream ps) throws IOException {
+    public static Boolean uploadImage(String jobId, String imageName, String imageId, SessionInfo sessionInfo, PrintStream ps) throws IOException, InterruptedException {
         String fileName = URLEncoder.encode(imageName,"UTF-8");
         System.out.println("the encode name is " + fileName);
         Runtime runtime = Runtime.getRuntime();
@@ -218,14 +218,28 @@ public class JenkinsServer {
             return false;
         }
 
-        //remove the tmp file
-        Boolean deleteFileResult = imageFile.delete();
-        if(!deleteFileResult) {
-            ps.println("failed to delete image file: " + imageFile.getPath());
-            return false;
-        } else {
-            System.out.println("successfully deleted image file: " + imageFile.getPath());
+        // try to remove the tmp file, ignore if cannot remove
+        final int sleepTime = 5000;
+        for (int i = 0; i < 3; ++i) {
+            Boolean deleteFileResult = false;
+            try {
+                deleteFileResult = imageFile.delete();
+                if(!deleteFileResult) {
+                    ps.println("failed to delete image file: " + imageFile.getPath());
+                }
+            } catch (Exception e) {
+                ps.println("failed to delete image file: " + imageFile.getPath() + ", error: " + e.getMessage());
+                deleteFileResult = false;
+            } finally {
+                if (!deleteFileResult) {
+                    Thread.sleep(sleepTime);
+                    continue;
+                } else {
+                    break;
+                }
+            }
         }
+
         return result;
     }
 
