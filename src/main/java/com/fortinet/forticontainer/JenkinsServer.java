@@ -7,6 +7,8 @@ import net.sf.json.JSONObject;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -183,12 +185,14 @@ public class JenkinsServer {
 
     public static Boolean uploadImage(String jobId, String imageName, String imageId, SessionInfo sessionInfo, PrintStream ps) throws IOException, InterruptedException {
         String fileName = URLEncoder.encode(imageName,"UTF-8");
-        System.out.println("the encode name is " + fileName);
+        String filePathName = "/tmp/" + fileName + ".tar";
+        System.out.println("the encoded file name is " + fileName);
         Runtime runtime = Runtime.getRuntime();
         Boolean result = false;
-        String saveDockerCmd = String.format("docker save %s -o /tmp/%s.tar", imageName, fileName);
+        String saveDockerCmd = String.format("docker save %s -o %s", imageName, filePathName);
         System.out.println("the saveDockerCmd is " + saveDockerCmd);
-        ps.println("saving docker file to local: " + saveDockerCmd);
+
+        ps.println("Saving docker file to local: " + saveDockerCmd);
         Process process = runtime.exec(saveDockerCmd);
 
         int exitVal = -1;
@@ -198,23 +202,27 @@ public class JenkinsServer {
             ps.println("Failed to save image " + e.getMessage());
         }
 
-        if(exitVal != 0) {
-            ps.println("docker process exit value: " + exitVal);
+        if (exitVal != 0) {
+            ps.println("Docker process exit value: " + exitVal);
             return false;
         }
 
         //save docker to fileName;
-        String imageFilePath = String.format("/tmp/%s.tar",fileName);
-        File imageFile = new File(imageFilePath);
+        System.out.println(filePathName + " size is: " + Files.size(Paths.get(filePathName)));
+
+        File imageFile = new File(filePathName);
         if(!imageFile.exists()) {
             ps.println("The image file does not exist: " + imageFile.getAbsolutePath());
             return false;
         }
         try {
-            result = sendImageFileToServer(imageFilePath, imageName, imageId, sessionInfo, jobId);
-            ps.println("The image has been uploaded for scanning");
+            result = sendImageFileToServer(filePathName, imageName, imageId, sessionInfo, jobId, ps);
+            if (result) {
+                ps.println("The image has been uploaded for scanning");
+            }
+
         } catch (Exception ex) {
-            ps.println("Failed to send image file: " + imageFilePath + " to server, error: " + ex.getMessage());
+            ps.println("Failed to send image file: " + filePathName + " to server, error: " + ex.getMessage());
             return false;
         }
 
@@ -225,18 +233,18 @@ public class JenkinsServer {
             try {
                 deleteFileResult = imageFile.delete();
                 if(!deleteFileResult) {
-                    ps.println("failed to delete image file: " + imageFile.getPath());
-                }
-            } catch (Exception e) {
-                ps.println("failed to delete image file: " + imageFile.getPath() + ", error: " + e.getMessage());
-                deleteFileResult = false;
-            } finally {
-                if (!deleteFileResult) {
+                    ps.println("Failed to remove temporary image file: " + imageFile.getPath());
+
                     Thread.sleep(sleepTime);
                     continue;
                 } else {
                     break;
                 }
+            } catch (Exception e) {
+                ps.println("Failed to remove temporary image file: " + imageFile.getPath() + ", error: " + e.getMessage());
+
+                Thread.sleep(sleepTime);
+                continue;
             }
         }
 
@@ -349,12 +357,18 @@ public class JenkinsServer {
         return true;
     }
 
-    private static Boolean sendImageFileToServer(String imageFilePath, String imageName, String imageId, SessionInfo sessionInfo, String jobId) throws Exception {
+    private static Boolean sendImageFileToServer(String imageFilePath,
+                                                 String imageName,
+                                                 String imageId,
+                                                 SessionInfo sessionInfo,
+                                                 String jobId,
+                                                 PrintStream ps) throws Exception {
         String url = sessionInfo.getControllerHostUrl() + ControllerUtil.URI_JENKINS_IMAGE + "/" + jobId;
-        System.out.println("sendImageFileToServer : the url send is : " + url);
+        System.out.println("sendImageFileToServer() the url is : " + url);
+
         String charset = "UTF-8";
         File binaryFile = new File(imageFilePath);
-        if(binaryFile.exists()) {
+        if (binaryFile.exists()) {
             System.out.println("the binary file is exist");
         }
         String boundary = "===" + Long.toHexString(System.currentTimeMillis()) + "==="; // Just generate some unique random value.
@@ -372,6 +386,7 @@ public class JenkinsServer {
         PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, charset), true);
 
         FileInputStream inputStream = null;
+        byte[] buffer = new byte[4096];
         try {
             String fileName = binaryFile.getName();
             System.out.println("the file name is " + fileName);
@@ -383,7 +398,7 @@ public class JenkinsServer {
             writer.flush();
 
             inputStream = new FileInputStream(binaryFile);
-            byte[] buffer = new byte[4096];
+
             int bytesRead = inputStream.read(buffer);
             while (bytesRead != -1) {
                 output.write(buffer, 0, bytesRead);
@@ -396,19 +411,30 @@ public class JenkinsServer {
             writer.flush();
 
             writer.append("--" + boundary + "--").append(CRLF).flush();
-            writer.close();
+
+            int responseCode = connection.getResponseCode();
+            ps.println("Send image file to server received HTTP response: " + responseCode);
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                return true;
+            } else {
+                return false;
+            }
         } finally {
+            buffer = null;
             if (inputStream != null) {
                 inputStream.close();
+                inputStream = null;
             }
-        }
-
-        int responseCode =connection.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK) {
+            if (output != null) {
+                output.close();
+                output = null;
+            }
+            if (writer != null) {
+                writer.close();
+                writer = null;
+            }
             connection.disconnect();
-            return true;
-        } else {
-            return false;
+            connection = null;
         }
     }
 }
