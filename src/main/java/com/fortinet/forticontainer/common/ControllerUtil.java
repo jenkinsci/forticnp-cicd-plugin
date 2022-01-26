@@ -62,7 +62,7 @@ public class ControllerUtil {
 
         // handle response
         int responseCode = conn.getResponseCode();
-        //System.out.println("getAccessToken response Code: " + responseCode);
+        System.out.println("getAccessToken response Code: " + responseCode);
 
         if (responseCode == HttpURLConnection.HTTP_OK) {
             final InputStream inputStream = conn.getInputStream();
@@ -75,7 +75,7 @@ public class ControllerUtil {
                     sb.append(output);
                 }
                 output = sb.toString();
-                //System.out.println(output); // debug
+                System.out.println(output); // debug
 
                 JSONObject tokenApiResponse = JSONObject.fromObject(output);
                 String token = tokenApiResponse.getString("access_token");
