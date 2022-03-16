@@ -6,7 +6,6 @@ public class CurrentBuildInfo {
     private String jobName;
     private String jobUrl;
     private String buildNumber;
-//    private String imageName;
     private String jenkinsJobId;
     private Integer buildResult;
     private List<String> imageNameList;
@@ -58,10 +57,6 @@ public class CurrentBuildInfo {
         return buildNumber;
     }
 
-//    public String getImageName() {
-//        return imageName;
-//    }
-
     public String getJenkinsJobId() {
         return jenkinsJobId;
     }
@@ -72,8 +67,6 @@ public class CurrentBuildInfo {
 
     @Override
     public String toString() {
-        return "CurrentBuildInfo, name:" + jobName + " url:" + jobUrl + " bulidN number:" + buildNumber + " job ID:" + jenkinsJobId;
+        return "CurrentBuildInfo, name:" + jobName + " url:" + jobUrl + " bulid number:" + buildNumber + " job ID:" + jenkinsJobId;
     }
-
-    //可以在这边对一些url 做处理，修改成想要的formart
 }

@@ -181,25 +181,50 @@ public class JenkinsServer {
         }
     }
 
-    public static Boolean uploadImage(String jobId, String imageName, String imageId, SessionInfo sessionInfo, PrintStream ps) throws IOException {
-        String fileName = URLEncoder.encode(imageName,"UTF-8");
-        System.out.println("the encode name is " + fileName);
-        Runtime runtime = Runtime.getRuntime();
-        Boolean result = false;
-        String saveDockerCmd = String.format("docker save %s -o /tmp/%s.tar", imageName, fileName);
-        System.out.println("the saveDockerCmd is " + saveDockerCmd);
-        ps.println("saving docker file to local: " + saveDockerCmd);
-        Process process = runtime.exec(saveDockerCmd);
+    public static void printImageDigest(String imageName, PrintStream ps) {
+        if (imageName == null || ps == null) {
+            return;
+        }
 
         int exitVal = -1;
         try {
+            Runtime runtime = Runtime.getRuntime();
+            final String dockerCmd = "docker images --no-trunc --quiet " + imageName;
+            Process process = runtime.exec(dockerCmd);
+            BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream(), Charset.defaultCharset()));
+            String output = null;
+            while ((output = stdInput.readLine()) != null) {
+                ps.println(output);
+            }
+            exitVal = process.waitFor();
+            if(exitVal != 0) {
+                ps.println("Cannot get image digest " + exitVal);
+            }
+            stdInput.close();
+        } catch (Exception e) {
+            ps.println("Failed to get image digest: " + e.getMessage());
+        }
+    }
+
+    public static Boolean uploadImage(String jobId, String imageName, String imageId, SessionInfo sessionInfo, PrintStream ps) throws IOException {
+        String fileName = URLEncoder.encode(imageName,"UTF-8");
+        System.out.println("the encode name is " + fileName);
+        Boolean result = false;
+
+        int exitVal = -1;
+        try {
+            printImageDigest(imageName, ps);
+            Runtime runtime = Runtime.getRuntime();
+            String saveDockerCmd = String.format("docker save %s -o /tmp/%s.tar", imageName, fileName);
+            ps.println("Saving docker file to local: " + saveDockerCmd);
+            Process process = runtime.exec(saveDockerCmd);
             exitVal = process.waitFor();
         } catch (InterruptedException e) {
-            ps.println("Failed to upload image " + e.getMessage());
+            ps.println("Failed to upload image: " + e.getMessage());
         }
 
         if(exitVal != 0) {
-            ps.println("docker process exit value: " + exitVal);
+            ps.println("Docker process exit value: " + exitVal);
             return false;
         }
 
@@ -221,7 +246,7 @@ public class JenkinsServer {
         //remove the tmp file
         Boolean deleteFileResult = imageFile.delete();
         if(!deleteFileResult) {
-            ps.println("failed to delete image file: " + imageFile.getPath());
+            ps.println("Failed to delete image file: " + imageFile.getPath());
             return false;
         } else {
             System.out.println("successfully deleted image file: " + imageFile.getPath());

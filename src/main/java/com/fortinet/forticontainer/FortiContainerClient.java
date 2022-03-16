@@ -75,16 +75,15 @@ public class FortiContainerClient {
 
             //upload image to controller
             for(String imageName : images) {
-                ps.println("request imageId");
                 String imageId = JenkinsServer.addImage(sessionInfo, currentBuildInfo, jobId);
-                ps.println("imageId: " + imageId);
+                ps.println("Image scan ID: " + imageId);
                 for (Integer i = 0; i < retry; ++i) {
                     try {
                         Boolean uploadResult = JenkinsServer.uploadImage(jobId, imageName, imageId, sessionInfo, ps);
                         imageResultMap.put(imageName, uploadResult);
         
                         if (uploadResult) {
-                            ps.println("image: " + imageName + " has been uploaded to host");
+                            ps.println("Image: " + imageName + " has been uploaded to host");
                         } else {
                             throw new RuntimeException("image: " + imageName + " was not uploaded to host");
                         }
