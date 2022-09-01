@@ -9,11 +9,22 @@
     </parent>
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>forticwp-cicd</artifactId>
-    <version>0.9.7-SNAPSHOT</version>
+    <!-- <version>0.9.7-SNAPSHOT</version> -->
+    <version>${revision}.${changelist}</version>
     <packaging>hpi</packaging>
+
+    <scm>
+        <connection>scm:git:git://github.com/jenkinsci/forticwp-cicd-plugin.git</connection>
+        <developerConnection>scm:git:forticontainer@github.com:jenkinsci/forticwp-cicd-plugin.git</developerConnection>
+        <tag>${scmTag}</tag>
+        <url>https://github.com/jenkinsci/forticwp-cicd-plugin</url>
+     </scm>
+     
     <properties>
         <jenkins.version>2.190.1</jenkins.version>
         <java.level>8</java.level>
+        <revision>0.9.7</revision>
+        <changelist>999999-SNAPSHOT</changelist>
     </properties>
     <name>FortiCWP CICD Plugin</name>
     <licenses>
