@@ -1,2 +1,2 @@
-# FortiCWP CICD Plugin
-This plug-in lets you integrate FortiCWP's image vulnerability scanning into the CICD workflow.
+# FortiCNP CICD Plugin
+This plug-in lets you integrate FortiCNP's image vulnerability scanning into the CICD workflow.
