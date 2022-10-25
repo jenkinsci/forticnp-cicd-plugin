@@ -123,7 +123,7 @@ public class PolicyBuilder extends Builder implements SimpleBuildStep {
 
             if (block && currentBuildInfo.getBuildResult() == 50) {
                 run.setResult(Result.FAILURE);
-                throw new RuntimeException("Job is blocked by FortiCWPScanner policy");
+                throw new RuntimeException("Job is blocked by FortiCNPScanner policy");
             } else {
                 run.setResult(Result.SUCCESS);
             }
