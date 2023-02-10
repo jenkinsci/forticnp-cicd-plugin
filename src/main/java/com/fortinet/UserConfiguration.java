@@ -99,8 +99,8 @@ public class UserConfiguration extends GlobalConfiguration {
     // dynamically fill web host list
     public ListBoxModel doFillWebHostAddressItems()
     {
-        return new ListBoxModel(new Option("FORTICWP GLOBAL", DEFAULT_PROTOCOL + FORTICWP_HOST),
-                                new Option("FORTICWP EU", DEFAULT_PROTOCOL + FORTICWP_EU_HOST));
+        return new ListBoxModel(new Option("FORTICNP GLOBAL", DEFAULT_PROTOCOL + FORTICWP_HOST),
+                                new Option("FORTICNP EU", DEFAULT_PROTOCOL + FORTICWP_EU_HOST));
                                 //new Option("QA1 (beta release)", DEFAULT_PROTOCOL + "qa1.staging.forticwp.com"),
                                 //new Option("QA (beta release)", DEFAULT_PROTOCOL + "qa.staging.forticwp.com")); // remove in offical release
     }
