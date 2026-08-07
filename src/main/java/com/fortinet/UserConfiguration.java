@@ -11,10 +11,10 @@ import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
+import hudson.Util;
 
 @Extension
 public class UserConfiguration extends GlobalConfiguration {
@@ -90,7 +90,7 @@ public class UserConfiguration extends GlobalConfiguration {
     }
 
     public FormValidation doCheckCredentialTokenSecret(@QueryParameter Secret secret) {
-        if (StringUtils.isEmpty(Secret.toString(secret))) {
+        if (Util.fixEmpty(Secret.toString(secret)) == null) {
             return FormValidation.warning("Please set access token");
         }
         return FormValidation.ok();
@@ -119,11 +119,11 @@ public class UserConfiguration extends GlobalConfiguration {
         String credentialToken = Secret.toString(credentialTokenSecret);
         //System.out.println("credentialToken:" + credentialToken);
 
-        if (StringUtils.isEmpty(credentialToken)) {
+        if (Util.fixEmpty(credentialToken) == null) {
             return FormValidation.error("Please set access token");
         }
 
-        if (enableManualHostCheck && StringUtils.isEmpty(manualHostAddress)) {
+        if (enableManualHostCheck && Util.fixEmpty(manualHostAddress) == null) {
             return FormValidation.error("Please set host address");
         }
 
